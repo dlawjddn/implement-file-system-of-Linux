@@ -141,6 +141,10 @@ int Concatenate(DirectoryTree* TreeDir, char* fName, int o);
 //chmod
 int ModeConvers(DirectoryTree* TreeDir, int mode, char* NameDir);
 void ModeConversAll(TreeNode* NodeDir, int mode);
+//chown
+int ChangeOwner(DirectoryTree* TreeDir, char* userName, char* dirName);
+void ChangeOwnerAll(TreeNode* NodeDir, char* userName);
+int chown_(DirectoryTree* dirTree, char* cmd);
 //find
 int DirRead(DirectoryTree* TreeDir, char* tmp, char* NameDir, int o);
 void DirFind(DirectoryTree* TreeDir, char* NameDir, int o);
@@ -180,9 +184,6 @@ int main()
 
     Login(UsersList, Linux);
     UserListSave(UsersList);
-    printf("*--------------Welcome to the DGU OS project system--------------*\n");
-    printf("*----------------Implemente File System of Linux-----------------*\n");
-    printf("*----------If you want to exit, typing \"exit\" and enter----------*\n");
 
     while (1) {
         HeadPrifnt(Linux, dStack);
@@ -816,7 +817,7 @@ int PrintPath(DirectoryTree* TreeDir, Stack* StackDir)
 }
 
 //cat
-int Concatenate(DirectoryTree* dirTree, char* fName, int o)
+int Concatenate(DirectoryTree* TreeDir, char* fName, int o)
 {
     UserNode* tmpUser = NULL;
     TreeNode* tmpNode = NULL;
@@ -837,7 +838,7 @@ int Concatenate(DirectoryTree* dirTree, char* fName, int o)
             }
             return 0;
         }
-        tmpNode = DirExistion(dirTree,fName, 'f');
+        tmpNode = DirExistion(TreeDir,fName, 'f');
 
         if(tmpNode == NULL){
             return -1;
@@ -880,7 +881,7 @@ int Concatenate(DirectoryTree* dirTree, char* fName, int o)
         rewind(stdin);
         fclose(fp);
 
-        tmpNode = DirExistion(dirTree, fName, 'f');
+        tmpNode = DirExistion(TreeDir, fName, 'f');
         //if exist
         if(tmpNode != NULL){
             time(&ltime);
@@ -893,10 +894,10 @@ int Concatenate(DirectoryTree* dirTree, char* fName, int o)
         }
         //if file doesn't exist
         else{
-            MakeDir(dirTree, fName, 'f');
+            MakeDir(TreeDir, fName, 'f');
         }
         //write size
-        tmpNode = DirExistion(dirTree, fName, 'f');
+        tmpNode = DirExistion(TreeDir, fName, 'f');
         tmpNode->SIZE = tmpSIZE;
     }
     return 0;
@@ -981,7 +982,7 @@ int ChangeOwner(DirectoryTree* TreeDir, char* userName, char* dirName) // TreeDi
 
     return 0;
 }
-//chown
+
 void ChangeOwnerAll(TreeNode* NodeDir, char* userName)
 {
     UserNode* tmpUser = NULL;
@@ -1007,6 +1008,7 @@ void ChangeOwnerAll(TreeNode* NodeDir, char* userName)
     NodeDir->UID = tmpUser->UID;
     NodeDir->GID = tmpUser->GID;
 }
+
 int chown_(DirectoryTree* dirTree, char* cmd)
 {
     TreeNode* tmpNode = NULL;
@@ -1108,6 +1110,7 @@ void ModeConversAll(TreeNode* NodeDir, int mode)
     NodeDir->mode = mode;
     ModeToPermission(NodeDir);
 }
+
 //find
 int DirRead(DirectoryTree* TreeDir, char* tmp, char* NameDir, int o)
 {
@@ -1550,8 +1553,10 @@ int rm(DirectoryTree* TreeDir, char* cmd)
                 return -1;
             }
             strncpy(tmp, str, MAX_DIR);
+            if(strstr(str, "/") == NULL){
             if (strstr(str, "/") == NULL) {
-                tmpNode = DirExistion(TreeDir, str, 'd');
+                tmpNode = DirExistion(TreeDir, str, 'f');
+                tmpNode = (DirExistion(TreeDir, str, 'd') == NULL) ? tmpNode : DirExistion(TreeDir, str, 'd');
                 if (tmpNode == NULL) {
                     printf("rm: Can not remove '%s': No such file or directory.\n", str);
                     return -1;
@@ -1576,7 +1581,8 @@ int rm(DirectoryTree* TreeDir, char* cmd)
                     strncpy(tmp3, str, MAX_NAME);
                     str = strtok(NULL, "/");
                 }
-                tmpNode = DirExistion(TreeDir, tmp3, 'd');
+                tmpNode = DirExistion(TreeDir, tmp3, 'f');
+                tmpNode = (DirExistion(TreeDir, tmp3, 'd') == NULL) ? tmpNode : DirExistion(TreeDir, tmp3, 'd');
                 if (tmpNode == NULL) {
                     printf("rm: Can not remove '%s': No such file or directory.\n", tmp3);
                     TreeDir->current = NodeCurrent;
@@ -1601,11 +1607,6 @@ int rm(DirectoryTree* TreeDir, char* cmd)
             strncpy(tmp, str, MAX_DIR);
             if (strstr(str, "/") == NULL) {
                 tmpNode = DirExistion(TreeDir, str, 'f');
-                tmpNode2 = DirExistion(TreeDir, str, 'd');
-
-                if (tmpNode2 != NULL) {
-                    return -1;
-                }
                 if (tmpNode == NULL) {
                     return -1;
                 }
@@ -1628,12 +1629,6 @@ int rm(DirectoryTree* TreeDir, char* cmd)
                     str = strtok(NULL, "/");
                 }
                 tmpNode = DirExistion(TreeDir, tmp3, 'f');
-                tmpNode2 = DirExistion(TreeDir, tmp3, 'd');
-
-                if (tmpNode2 != NULL) {
-                    TreeDir->current = NodeCurrent;
-                    return -1;
-                }
                 if (tmpNode == NULL) {
                     TreeDir->current = NodeCurrent;
                     return -1;
@@ -1655,7 +1650,8 @@ int rm(DirectoryTree* TreeDir, char* cmd)
             }
             strncpy(tmp, str, MAX_DIR);
             if (strstr(str, "/") == NULL) {
-                tmpNode = DirExistion(TreeDir, str, 'd');
+                tmpNode = DirExistion(TreeDir, str, 'f');
+                tmpNode = (DirExistion(TreeDir, str, 'd') == NULL) ? tmpNode : DirExistion(TreeDir, str, 'd');
                 if (tmpNode == NULL) {
                     return -1;
                 }
@@ -1677,7 +1673,8 @@ int rm(DirectoryTree* TreeDir, char* cmd)
                     strncpy(tmp3, str, MAX_NAME);
                     str = strtok(NULL, "/");
                 }
-                tmpNode = DirExistion(TreeDir, tmp3, 'd');
+                tmpNode = DirExistion(TreeDir, str, 'f');
+                tmpNode = (DirExistion(TreeDir, str, 'd') == NULL) ? tmpNode : DirExistion(TreeDir, str, 'd');
                 if (tmpNode == NULL) {
                     TreeDir->current = NodeCurrent;
                     return -1;
@@ -2546,6 +2543,12 @@ void Instruction(DirectoryTree* TreeDir, char* cmd)
     }
     else if(strcmp(str, "chown") == 0){
         str = strtok(NULL, " ");
+        /*
+            warning: incompatible pointer types passing 'DirectoryTree *' (aka 'struct DirectoryTreetag *') 
+            to parameter of type 'TreeNode *' (aka 'struct TreeNodetag *') [-Wincompatible-pointer-types]
+
+            val = chown_(TreeDir, str); -> TreeDir = warning // 2554 line
+        */
         val = chown_(TreeDir, str); 
         if(val == 0){
             SaveDir(TreeDir, dStack);
@@ -2706,3 +2709,5 @@ void TakeWeekDay(int i)
         break;
     }
 }
+
+
