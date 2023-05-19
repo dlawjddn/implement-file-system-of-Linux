@@ -123,14 +123,20 @@ int mycp(DirectoryTree* TreeDir, char* sName, char* oName);
 //mkdir
 DirectoryTree* InitializeTree();
 int MakeDir(DirectoryTree* TreeDir, char* NameDir, char type);
+
 //rm
 int RemoveDir(DirectoryTree* TreeDir, char* NameDir);
+
 //cd
 int CurrentMove(DirectoryTree* TreeDir, char* PathDir);
 int PathMove(DirectoryTree* TreeDir, char* PathDir);
+
 //pwd
 int PrintPath(DirectoryTree* TreeDir, Stack* StackDir);
+
 //ls
+char* GetGID(TreeNode* dirNode);
+char* GetUID(TreeNode* dirNode);
 void ls(DirectoryTree* TreeDir);
 void ls_a(DirectoryTree* TreeDir);
 void ls_l(DirectoryTree* TreeDir);
@@ -138,14 +144,21 @@ void ls_al(DirectoryTree* TreeDir);
 
 //cat
 int Concatenate(DirectoryTree* TreeDir, char* fName, int o);
+
 //chmod
 int ModeConvers(DirectoryTree* TreeDir, int mode, char* NameDir);
 void ModeConversAll(TreeNode* NodeDir, int mode);
+
+//chown
+int ChangeOwner(DirectoryTree* TreeDir, char* userName, char* dirName);
+void ChangeOwnerAll(TreeNode* NodeDir, char* userName);
+int chown_(DirectoryTree* dirTree, char* cmd);
+
 //find
 int DirRead(DirectoryTree* TreeDir, char* tmp, char* NameDir, int o);
 void DirFind(DirectoryTree* TreeDir, char* NameDir, int o);
-//user
 
+//user
 void UserWrite(UserList* ListUser, UserNode* NodeUser);
 void UserListSave(UserList* ListUser);
 int UserRead(UserList* ListUser, char* tmp);
@@ -154,11 +167,13 @@ UserNode* UserExistion(UserList* ListUser, char* NameUser);
 
 int OwnPermission(TreeNode* NodeDir, char o);
 void Login(UserList* ListUser, DirectoryTree* TreeDir);
+
 //stack
 int EmptyTrue(Stack* StackDir);
 Stack* StackInitializaion();
 int Push(Stack* StackDir, char* NameDir);
 char* Pop(Stack* StackDir);
+
 //time
 void TakeMonth(int i);
 void TakeWeekDay(int i);
@@ -1604,6 +1619,7 @@ int rm(DirectoryTree* TreeDir, char* cmd)
             if (strstr(str, "/") == NULL) {
                 tmpNode = DirExistion(TreeDir, str, 'f');
                 if (tmpNode == NULL) {
+                    printf("error: %s is not a file, %s is a directory\n", str, str);
                     return -1;
                 }
                 else {
@@ -1931,9 +1947,21 @@ void ls_a(DirectoryTree* TreeDir) {
     }
 }
 void ls_l(DirectoryTree* TreeDir) {
-    time_t timer;
+    time_t timer = time(NULL);
     TreeNode* tmpNode = TreeDir->current;
-    timer = time(NULL);
+    TreeNode* tmpNode2 = tmpNode->LeftChild;
+    int cnt=0;
+
+    if(tmpNode2 == NULL) cnt = 2;
+    else{
+        if(tmpNode2->type == 'd') cnt = 3;
+        else cnt = 2;
+
+        while(tmpNode2->RightChild != NULL){
+            tmpNode2 = tmpNode2->RightChild;
+            if(tmpNode2->type == 'd') cnt = cnt + 1;
+        }
+    }
     if (tmpNode->LeftChild == NULL)
         printf("directory empty\n");
     else {
@@ -1942,6 +1970,7 @@ void ls_l(DirectoryTree* TreeDir) {
             if(tmpNode->name[0] != '.') {
                 printf("%c", tmpNode->type);
                 PermissionPrint(tmpNode);
+                printf("%3d   ", cnt);
                 printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
                 printf(" %5d", tmpNode->SIZE);
                 printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
@@ -1951,6 +1980,7 @@ void ls_l(DirectoryTree* TreeDir) {
         }
         printf("%c", tmpNode->type);
         PermissionPrint(tmpNode);
+        printf("%3d   ", cnt);
         printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
         printf(" %5d", tmpNode->SIZE);
         printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
@@ -1958,13 +1988,26 @@ void ls_l(DirectoryTree* TreeDir) {
     }
 }
 void ls_al(DirectoryTree* TreeDir) {
-    time_t timer;
+    time_t timer = time(NULL);
     TreeNode* tmpNode = TreeDir->current;
-    timer = time(NULL);
+    TreeNode* tmpNode2 = tmpNode->LeftChild;
+    int cnt=0;
+
+    if(tmpNode2 == NULL) cnt = 2;
+    else{
+        if(tmpNode2->type == 'd') cnt = 3;
+        else cnt = 2;
+
+        while(tmpNode2->RightChild != NULL){
+            tmpNode2 = tmpNode2->RightChild;
+            if(tmpNode2->type == 'd') cnt = cnt + 1;
+        }
+    }
     if (tmpNode->LeftChild == NULL) {
         //.
         printf("%c", TreeDir->current->type);
         PermissionPrint(TreeDir->current);
+        printf("%3d   ", cnt);
         printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
         printf(" %5d", tmpNode->SIZE);
         printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
@@ -1973,6 +2016,7 @@ void ls_al(DirectoryTree* TreeDir) {
         if (strcmp(TreeDir->current->name, "/") == 0) {
             printf("%c", TreeDir->current->type);
             PermissionPrint(TreeDir->current);
+            printf("%3d   ", cnt);
             printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
             printf(" %5d", tmpNode->SIZE);
             printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
@@ -1981,6 +2025,7 @@ void ls_al(DirectoryTree* TreeDir) {
         else {
             printf("%c", tmpNode->Parent->type);
             PermissionPrint(tmpNode->Parent);
+            printf("%3d   ", cnt);
             printf(" %-5s%-5s", GetUID(tmpNode->Parent), GetGID(tmpNode->Parent));
             printf(" %5d", tmpNode->Parent->SIZE);
             printf(" %d월 %2d %02d:%02d ", tmpNode->Parent->month, tmpNode->Parent->day, tmpNode->Parent->hour, tmpNode->Parent->min);
@@ -1991,6 +2036,7 @@ void ls_al(DirectoryTree* TreeDir) {
         //.
         printf("%c", TreeDir->current->type);
         PermissionPrint(TreeDir->current);
+        printf("%3d   ", cnt);
         printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
         printf(" %5d", tmpNode->SIZE);
         printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
@@ -1999,6 +2045,7 @@ void ls_al(DirectoryTree* TreeDir) {
         if (strcmp(TreeDir->current->name, "/") == 0) {
             printf("%c", TreeDir->current->type);
             PermissionPrint(TreeDir->current);
+            printf("%3d ", cnt);
             printf(" %-5s%-5s %5d", GetUID(tmpNode), GetGID(tmpNode), tmpNode->SIZE);
             printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
             printf("..\n");
@@ -2006,6 +2053,7 @@ void ls_al(DirectoryTree* TreeDir) {
         else {
             printf("%c", tmpNode->Parent->type);
             PermissionPrint(tmpNode->Parent);
+            printf("%3d   ", cnt);
             printf(" %-5s%-5s", GetUID(tmpNode->Parent), GetGID(tmpNode->Parent));
             printf(" %5d", tmpNode->Parent->SIZE);
             printf(" %d월 %2d %02d:%02d ", tmpNode->Parent->month, tmpNode->Parent->day, tmpNode->Parent->hour, tmpNode->Parent->min);
@@ -2017,6 +2065,7 @@ void ls_al(DirectoryTree* TreeDir) {
         while (tmpNode->RightChild != NULL) {
             printf("%c", tmpNode->type);
             PermissionPrint(tmpNode);
+            printf("%3d   ", cnt);
             printf(" %-5s%-5s %5d", GetUID(tmpNode), GetGID(tmpNode), tmpNode->SIZE);
             printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
             printf("%s\n", tmpNode->name);
@@ -2024,6 +2073,7 @@ void ls_al(DirectoryTree* TreeDir) {
         }
         printf("%c", tmpNode->type);
         PermissionPrint(tmpNode);
+        printf("%3d   ", cnt);
         printf(" %-5s%-5s %5d", GetUID(tmpNode), GetGID(tmpNode), tmpNode->SIZE);
         printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
         printf("%s\n", tmpNode->name);
