@@ -2641,7 +2641,7 @@ void pasingCommand(DirectoryTree* TreeDir, char* cmd)
             grep(str, str1);
     }
     else if (strcmp(str, "clear") == 0) {
-        system("cls");
+        system("clear");
     }
     else {
         printf("'%s': Command not found\n", cmd);
