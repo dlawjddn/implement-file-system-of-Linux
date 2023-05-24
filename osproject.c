@@ -93,9 +93,8 @@ int cd(DirectoryTree* TreeDir, char* cmd);
 int pwd(DirectoryTree* TreeDir, Stack* StackDir, char* cmd);
 int chmod_(DirectoryTree* TreeDir, char* cmd);
 int find(DirectoryTree* TreeDir, char* cmd);
-void Instruction(DirectoryTree* TreeDir, char* cmd);
-void PrintStart();
-void HeadPrifnt(DirectoryTree* TreeDir, Stack* StackDir);
+void pasingCommand(DirectoryTree* TreeDir, char* cmd);
+void printHedder(DirectoryTree* TreeDir, Stack* StackDir);
 
 //grep
 void grep(char* Word_Search, char* f_name);
@@ -196,14 +195,14 @@ int main()
     Login(UsersList, Linux);
     UserListSave(UsersList);
     printf("*--------------Welcome to the DGU OS project system--------------*\n");
-    printf("*----------------Implemente File System of Linux-----------------*\n");
+    printf("*----------------Implement File System of Linux-----------------*\n");
     printf("*----------If you want to exit, typing \"exit\" and enter----------*\n");
 
     while (1) {
-        HeadPrifnt(Linux, dStack);
+        printHedder(Linux, dStack);
         fgets(cmd, sizeof(cmd), stdin);
         cmd[strlen(cmd) - 1] = '\0';
-        Instruction(Linux, cmd);
+        pasingCommand(Linux, cmd);
     }
     return 0;
 }
@@ -1030,7 +1029,7 @@ int chown_(DirectoryTree* dirTree, char* cmd)
     char tmp[MAX_NAME];
 
     if(cmd == NULL){
-        printf("chown: 잘못된 연산자\n");
+        printf("chown: put your command line\n");
         printf("Try 'chown --help' for more information.\n");
         return -1;
     }
@@ -1038,7 +1037,7 @@ int chown_(DirectoryTree* dirTree, char* cmd)
         if(strcmp(cmd, "-R") == 0){
             str = strtok(NULL, " ");
             if(str == NULL){
-                printf("chown: 잘못된 연산자2\n");
+                printf("chown: wrong operator\n");
                 printf("Try 'chown --help' for more information.\n");
                 return -1;
             }
@@ -1047,20 +1046,16 @@ int chown_(DirectoryTree* dirTree, char* cmd)
                 strncpy(tmp, str, MAX_NAME);
             }
             else{
-                printf("chown: 잘못된 사용자: '%s'\n", str);
+                printf("chown: wrong user: '%s'\n", str);
                 printf("Try 'chown --help' for more information.\n");
                 return -1;
             }
             str = strtok(NULL, " ");
             if(str == NULL){
-                printf("chown: 잘못된 연산자3\n");
+                printf("chown: put your command line\n");
                 printf("Try 'chown --help' for more information.\n");
                 return -1;
             }
-            /*
-                여기 밑에 TreeDir 구조체 자료형 warning 뜨고 있어요! 구조체 자료형을 바꿔야하는 거 같아요!
-                1047, 1050, 1052, 1092   함수명(TreeDir, tmp, str); TreeDir->error
-            */
             tmpNode = DirExistion(dirTree, str, 'd');
             if(tmpNode != NULL){
                 if(tmpNode->LeftChild == NULL)
@@ -1071,7 +1066,7 @@ int chown_(DirectoryTree* dirTree, char* cmd)
                 }
             }
             else{
-                printf("chown: '%s': 그런 파일이나 디렉터리가 없습니다\n", str);
+                printf("chown: '%s': there is no file or directory..\n", str);
                 return -1;
             }
         }
@@ -1086,12 +1081,12 @@ int chown_(DirectoryTree* dirTree, char* cmd)
         else{
             str = strtok(cmd, "-");
             if(str == NULL){
-                printf("chown: 잘못된 연산자4\n");
+                printf("chown: put your command line\n");
                 printf("Try 'chown --help' for more information.\n");
                 return -1;
             }
             else{
-                printf("chown: 부적절한 옵션 -- 5'%s'\n", str);
+                printf("chown: invailable option -- 5'%s'\n", str);
                 printf("Try 'chown --help' for more information.\n");
                 return -1;
             }
@@ -1101,7 +1096,7 @@ int chown_(DirectoryTree* dirTree, char* cmd)
         strncpy(tmp, cmd, MAX_NAME);
         str = strtok(NULL, " ");
         if(str == NULL){
-            printf("chown: 잘못된 연산자\n");
+            printf("chown: put your command line\n");
             printf("Try 'chown --help' for more information.\n");
             return -1;
         }
@@ -1432,7 +1427,7 @@ char* Pop(Stack* StackDir)
     return returnNode->name;
 }
 
-//instruction command
+//pasingCommand command
 int Mkdir(DirectoryTree* TreeDir, char* cmd)
 {
     TreeNode* tmpNode = NULL;
@@ -2555,7 +2550,7 @@ int find(DirectoryTree* TreeDir, char* cmd)
     return 0;
 }
 
-void Instruction(DirectoryTree* TreeDir, char* cmd)
+void pasingCommand(DirectoryTree* TreeDir, char* cmd)
 {
     char* str;
     char* str1;
@@ -2654,7 +2649,7 @@ void Instruction(DirectoryTree* TreeDir, char* cmd)
     return;
 }
 
-void HeadPrifnt(DirectoryTree* TreeDir, Stack* StackDir)
+void printHedder(DirectoryTree* TreeDir, Stack* StackDir)
 {
     TreeNode* tmpNode = NULL;
     char tmp[MAX_DIR] = "";
