@@ -142,7 +142,7 @@ void ls_l(DirectoryTree* TreeDir);
 void ls_al(DirectoryTree* TreeDir);
 
 //cat
-int Concatenate(DirectoryTree* TreeDir, char* fName, int o);
+int fileReadWrite(DirectoryTree* TreeDir, char* fName, int o);
 
 //chmod
 int ModeConvers(DirectoryTree* TreeDir, int mode, char* NameDir);
@@ -830,7 +830,7 @@ int PrintPath(DirectoryTree* TreeDir, Stack* StackDir)
 }
 
 //cat
-int Concatenate(DirectoryTree* dirTree, char* fName, int o)
+int fileReadWrite(DirectoryTree* dirTree, char* fName, int o)
 {
     UserNode* tmpUser = NULL;
     TreeNode* tmpNode = NULL;
@@ -1001,18 +1001,8 @@ void ChangeOwnerAll(TreeNode* NodeDir, char* userName)
     UserNode* tmpUser = NULL;
 
     tmpUser = UserExistion(UsersList, userName);
-    /*
-        993 line
-        error: no member named 'RightSibling' in 'struct TreeNodetag'
-        if(NodeDir->RightSibling != NULL){
-    */
 
     if(NodeDir->RightChild != NULL){
-        /*
-            999 line
-            error: no member named 'RightSibling' in 'struct TreeNodetag'
-            ChangeOwnerAll(NodeDir->RightSibling, userName);
-        */
         ChangeOwnerAll(NodeDir->RightChild, userName);
     }
     if(NodeDir->LeftChild != NULL){
@@ -1914,7 +1904,7 @@ void ls(DirectoryTree* TreeDir) {
                 printf("\n");
 
         }
-        printf("%s\t\n", tmpNode->name);
+        if(tmpNode->name[0] != '.') printf("%s\t\n", tmpNode->name);
     }
 }
 
@@ -2111,7 +2101,7 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                 return -1;
             }
             else {
-                Concatenate(TreeDir, str, 0);
+                fileReadWrite(TreeDir, str, 0);
             }
         }
         else {
@@ -2138,7 +2128,7 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                 return -1;
             }
             else {
-                Concatenate(TreeDir, tmp3, 0);
+                fileReadWrite(TreeDir, tmp3, 0);
             }
             TreeDir->current = NodeCurrent;
         }
@@ -2169,7 +2159,7 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                     return -1;
                 }
                 else {
-                    Concatenate(TreeDir, str, 2);
+                    fileReadWrite(TreeDir, str, 2);
                 }
             }
             else {
@@ -2203,7 +2193,7 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                     return -1;
                 }
                 else {
-                    Concatenate(TreeDir, tmp3, 2);
+                    fileReadWrite(TreeDir, tmp3, 2);
                 }
                 TreeDir->current = NodeCurrent;
             }
@@ -2231,7 +2221,7 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                     return -1;
                 }
                 else {
-                    Concatenate(TreeDir, str, 3);
+                    fileReadWrite(TreeDir, str, 3);
                 }
             }
             else {
@@ -2264,7 +2254,7 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                     return -1;
                 }
                 else {
-                    Concatenate(TreeDir, tmp3, 3);
+                    fileReadWrite(TreeDir, tmp3, 3);
                 }
                 TreeDir->current = NodeCurrent;
             }
@@ -2294,7 +2284,7 @@ int cat(DirectoryTree* TreeDir, char* cmd)
     }
     else {
         if (strcmp(cmd, "/etc/passwd") == 0) {
-            Concatenate(TreeDir, cmd, 4);
+            fileReadWrite(TreeDir, cmd, 4);
             return 0;
         }
         //printf("cmd :  %s\n", cmd);
@@ -2323,7 +2313,7 @@ int cat(DirectoryTree* TreeDir, char* cmd)
             }
             else {
                 //printf("%s\n", cmd); 파일 이름 잘 넘어감
-                Concatenate(TreeDir, cmd, 1);
+                fileReadWrite(TreeDir, cmd, 1);
             }
 
         }
@@ -2357,7 +2347,7 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                 return -1;
             }
             else {
-                Concatenate(TreeDir, tmp3, 1);
+                fileReadWrite(TreeDir, tmp3, 1);
             }
             TreeDir->current = NodeCurrent;
         }
