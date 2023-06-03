@@ -149,7 +149,7 @@ int ModeConvers(DirectoryTree* TreeDir, int mode, char* NameDir);
 void ModeConversAll(TreeNode* NodeDir, int mode);
 
 //chown
-int ChangeOwner(DirectoryTree* TreeDir, char* userName, char* dirName);
+int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag);
 void ChangeOwnerAll(TreeNode* NodeDir, char* userName);
 int chown_(DirectoryTree* dirTree, char* cmd);
 
@@ -327,18 +327,18 @@ int mycp(DirectoryTree* TreeDir, char* sName, char* oName) {
 //save & load
 void TakePath(DirectoryTree* TreeDir, TreeNode* NodeDir, Stack* StackDir)
 {
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
     char tmp[MAX_DIR] = "";
 
-    tmpNode = NodeDir->Parent;
+    tempNode = NodeDir->Parent;
 
-    if (tmpNode == TreeDir->root) {
+    if (tempNode == TreeDir->root) {
         strcpy(tmp, "/");
     }
     else {
-        while (tmpNode->Parent != NULL) {
-            Push(StackDir, tmpNode->name);
-            tmpNode = tmpNode->Parent;
+        while (tempNode->Parent != NULL) {
+            Push(StackDir, tempNode->name);
+            tempNode = tempNode->Parent;
         }
         while (EmptyTrue(StackDir) == 0) {
             strcat(tmp, "/");
@@ -368,7 +368,7 @@ void NodeWrite(DirectoryTree* TreeDir, TreeNode* NodeDir, Stack* StackDir)
 
 int MakeMultiDir(DirectoryTree* TreeDir, char* directoryName, char type, char* AddValues) {
     TreeNode* NewNode = (TreeNode*)malloc(sizeof(TreeNode));
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
 
     if (OwnPermission(TreeDir->current, 'w') != 0) {
         printf("mkdir: '%s' Can not create directory: Permission denied.\n", directoryName);
@@ -380,8 +380,8 @@ int MakeMultiDir(DirectoryTree* TreeDir, char* directoryName, char type, char* A
         free(NewNode);
         return -1;
     }
-    tmpNode = DirExistion(TreeDir, directoryName, type);
-    if (tmpNode != NULL) {
+    tempNode = DirExistion(TreeDir, directoryName, type);
+    if (tempNode != NULL) {
         printf("%s", type == 'd' ? "mkdir" : "touch");
         printf(": '%s' Can not create directory: File exists.\n", directoryName);
         free(NewNode);
@@ -437,12 +437,12 @@ int MakeMultiDir(DirectoryTree* TreeDir, char* directoryName, char type, char* A
         TreeDir->current->LeftChild = NewNode;
     }
     else {
-        tmpNode = TreeDir->current->LeftChild;
+        tempNode = TreeDir->current->LeftChild;
 
-        while (tmpNode->RightChild != NULL) {
-            tmpNode = tmpNode->RightChild;
+        while (tempNode->RightChild != NULL) {
+            tempNode = tempNode->RightChild;
         }
-        tmpNode->RightChild = NewNode;
+        tempNode->RightChild = NewNode;
     }
 
     return 0;
@@ -457,7 +457,7 @@ void* threadmkdir(void* arg) {
     char* filename = pArgThreading->AddValues;
     char* PathCopy = pArgThreading->PathCopy;
 
-    TreeNode* tmpNode = pdirectoryTree->current;
+    TreeNode* tempNode = pdirectoryTree->current;
     char tmp[MAX_DIR];
     char pStr[MAX_DIR];
     char tmpStr[MAX_DIR];
@@ -498,7 +498,7 @@ void* threadmkdir(void* arg) {
         }
         directoryName[directoryNameLength] = 0;
         MakeMultiDir(pdirectoryTree, directoryName, 'd', NULL);
-        pdirectoryTree->current = tmpNode;
+        pdirectoryTree->current = tempNode;
     }
     else {
         char* pgetdirectory = TakeDir(command);
@@ -515,7 +515,7 @@ void* threadmkdir(void* arg) {
 
             }
             MakeMultiDir(pdirectoryTree, pdirectoryname, 'd', pArgThreading->AddValues);
-            pdirectoryTree->current = tmpNode;
+            pdirectoryTree->current = tempNode;
         }
     }
     pthread_exit(NULL);
@@ -532,7 +532,7 @@ void SaveDir(DirectoryTree* TreeDir, Stack* StackDir)
 int NodeRead(DirectoryTree* TreeDir, char* tmp)
 {
     TreeNode* NewNode = (TreeNode*)malloc(sizeof(TreeNode));
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
     char* str;
 
     NewNode->LeftChild = NULL;
@@ -571,10 +571,10 @@ int NodeRead(DirectoryTree* TreeDir, char* tmp)
             TreeDir->current->LeftChild = NewNode;
         }
         else {
-            tmpNode = TreeDir->current->LeftChild;
-            while (tmpNode->RightChild != NULL)
-                tmpNode = tmpNode->RightChild;
-            tmpNode->RightChild = NewNode;
+            tempNode = TreeDir->current->LeftChild;
+            while (tempNode->RightChild != NULL)
+                tempNode = tempNode->RightChild;
+            tempNode->RightChild = NewNode;
         }
     }
     else {
@@ -632,7 +632,7 @@ DirectoryTree* InitializeTree()
 int MakeDir(DirectoryTree* TreeDir, char* NameDir, char type)
 {
     TreeNode* NewNode = (TreeNode*)malloc(sizeof(TreeNode));
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
 
     if (OwnPermission(TreeDir->current, 'w') != 0) {
         printf("mkdir: '%s' Can not create directory: Permission denied.\n", NameDir);
@@ -644,8 +644,8 @@ int MakeDir(DirectoryTree* TreeDir, char* NameDir, char type)
         free(NewNode);
         return -1;
     }
-    tmpNode = DirExistion(TreeDir, NameDir, type);
-    if (tmpNode != NULL && tmpNode->type == 'd') {
+    tempNode = DirExistion(TreeDir, NameDir, type);
+    if (tempNode != NULL && tempNode->type == 'd') {
         printf("mkdir: '%s' Can not create directory: File exists\n", NameDir);
         free(NewNode);
         return -1;
@@ -688,12 +688,12 @@ int MakeDir(DirectoryTree* TreeDir, char* NameDir, char type)
         TreeDir->current->LeftChild = NewNode;
     }
     else {
-        tmpNode = TreeDir->current->LeftChild;
+        tempNode = TreeDir->current->LeftChild;
 
-        while (tmpNode->RightChild != NULL) {
-            tmpNode = tmpNode->RightChild;
+        while (tempNode->RightChild != NULL) {
+            tempNode = tempNode->RightChild;
         }
-        tmpNode->RightChild = NewNode;
+        tempNode->RightChild = NewNode;
     }
 
     return 0;
@@ -703,31 +703,31 @@ int MakeDir(DirectoryTree* TreeDir, char* NameDir, char type)
 int RemoveDir(DirectoryTree* TreeDir, char* NameDir)
 {
     TreeNode* DelNode = NULL;
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
     TreeNode* prevNode = NULL;
 
-    tmpNode = TreeDir->current->LeftChild;
+    tempNode = TreeDir->current->LeftChild;
 
-    if (tmpNode == NULL) {
+    if (tempNode == NULL) {
         printf("rm: Can not remove '%s': No such file or directory\n", NameDir);
         return -1;
     }
 
-    if (strcmp(tmpNode->name, NameDir) == 0) {
-        TreeDir->current->LeftChild = tmpNode->RightChild;
-        DelNode = tmpNode;
+    if (strcmp(tempNode->name, NameDir) == 0) {
+        TreeDir->current->LeftChild = tempNode->RightChild;
+        DelNode = tempNode;
         if (DelNode->LeftChild != NULL)
             DirRemove(DelNode->LeftChild);
         NodeRemove(DelNode);
     }
     else {
-        while (tmpNode != NULL) {
-            if (strcmp(tmpNode->name, NameDir) == 0) {
-                DelNode = tmpNode;
+        while (tempNode != NULL) {
+            if (strcmp(tempNode->name, NameDir) == 0) {
+                DelNode = tempNode;
                 break;
             }
-            prevNode = tmpNode;
-            tmpNode = tmpNode->RightChild;
+            prevNode = tempNode;
+            tempNode = tempNode->RightChild;
         }
         if (DelNode != NULL) {
             prevNode->RightChild = DelNode->RightChild;
@@ -747,7 +747,7 @@ int RemoveDir(DirectoryTree* TreeDir, char* NameDir)
 //cd
 int CurrentMove(DirectoryTree* TreeDir, char* PathDir)
 {
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
     if (strcmp(PathDir, ".") == 0) {
     }
     else if (strcmp(PathDir, "..") == 0) {
@@ -757,9 +757,9 @@ int CurrentMove(DirectoryTree* TreeDir, char* PathDir)
     }
     else {
 
-        tmpNode = DirExistion(TreeDir, PathDir, 'd');
-        if (tmpNode != NULL) {
-            TreeDir->current = tmpNode;
+        tempNode = DirExistion(TreeDir, PathDir, 'd');
+        if (tempNode != NULL) {
+            TreeDir->current = tempNode;
         }
         else
             return -1;
@@ -769,13 +769,13 @@ int CurrentMove(DirectoryTree* TreeDir, char* PathDir)
 
 int PathMove(DirectoryTree* TreeDir, char* PathDir)
 {
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
     char tmpPath[MAX_DIR];
     char* str = NULL;
     int val = 0;
 
     strncpy(tmpPath, PathDir, MAX_DIR);
-    tmpNode = TreeDir->current;
+    tempNode = TreeDir->current;
     //if input is root
     if (strcmp(PathDir, "/") == 0) {
         TreeDir->current = TreeDir->root;
@@ -794,7 +794,7 @@ int PathMove(DirectoryTree* TreeDir, char* PathDir)
             val = CurrentMove(TreeDir, str);
             //if input path doesn't exist
             if (val != 0) {
-                TreeDir->current = tmpNode;
+                TreeDir->current = tempNode;
                 return -1;
             }
             str = strtok(NULL, "/");
@@ -807,17 +807,17 @@ int PathMove(DirectoryTree* TreeDir, char* PathDir)
 int PrintPath(DirectoryTree* TreeDir, Stack* StackDir)
 {
 
-    TreeNode* tmpNode = NULL;
-    tmpNode = TreeDir->current;
+    TreeNode* tempNode = NULL;
+    tempNode = TreeDir->current;
     //if current directory is root
-    if (tmpNode == TreeDir->root) {
+    if (tempNode == TreeDir->root) {
         printf("/");
     }
     else {
         //until current directory is root, repeat Push
-        while (tmpNode->Parent != NULL) {
-            Push(StackDir, tmpNode->name);
-            tmpNode = tmpNode->Parent;
+        while (tempNode->Parent != NULL) {
+            Push(StackDir, tempNode->name);
+            tempNode = tempNode->Parent;
         }
         //until stack is empty, repeat Pop
         while (EmptyTrue(StackDir) == 0) {
@@ -832,8 +832,8 @@ int PrintPath(DirectoryTree* TreeDir, Stack* StackDir)
 //cat
 int fileReadWrite(DirectoryTree* dirTree, char* fName, int o)
 {
-    UserNode* tmpUser = NULL;
-    TreeNode* tmpNode = NULL;
+    UserNode* tempUser = NULL;
+    TreeNode* tempNode = NULL;
     FILE* fp;
     char buf[MAX_BUFFER];
     char tmpName[MAX_NAME];
@@ -844,16 +844,16 @@ int fileReadWrite(DirectoryTree* dirTree, char* fName, int o)
     //file read
     if(o != 0){
         if(o == 4){
-            tmpUser = UsersList->head;
-            while(tmpUser != NULL){
-                printf("%s:x:%d:%d:%s:%s\n", tmpUser->name, tmpUser->UID, tmpUser->GID, tmpUser->name, tmpUser->dir);
-                tmpUser = tmpUser->LinkNode;
+            tempUser = UsersList->head;
+            while(tempUser != NULL){
+                printf("%s:x:%d:%d:%s:%s\n", tempUser->name, tempUser->UID, tempUser->GID, tempUser->name, tempUser->dir);
+                tempUser = tempUser->LinkNode;
             }
             return 0;
         }
-        tmpNode = DirExistion(dirTree,fName, 'f');
+        tempNode = DirExistion(dirTree,fName, 'f');
 
-        if(tmpNode == NULL){
+        if(tempNode == NULL){
             return -1;
         }
         fp = fopen(fName, "r");
@@ -894,50 +894,50 @@ int fileReadWrite(DirectoryTree* dirTree, char* fName, int o)
         rewind(stdin);
         fclose(fp);
 
-        tmpNode = DirExistion(dirTree, fName, 'f');
+        tempNode = DirExistion(dirTree, fName, 'f');
         //if exist
-        if(tmpNode != NULL){
+        if(tempNode != NULL){
             time(&ltime);
             today = localtime(&ltime);
 
-            tmpNode->month = today->tm_mon + 1;
-            tmpNode->day = today->tm_mday;
-            tmpNode->hour = today->tm_hour;
-            tmpNode->min = today->tm_min;
+            tempNode->month = today->tm_mon + 1;
+            tempNode->day = today->tm_mday;
+            tempNode->hour = today->tm_hour;
+            tempNode->min = today->tm_min;
         }
         //if file doesn't exist
         else{
             MakeDir(dirTree, fName, 'f');
         }
         //write size
-        tmpNode = DirExistion(dirTree, fName, 'f');
-        tmpNode->SIZE = tmpSIZE;
+        tempNode = DirExistion(dirTree, fName, 'f');
+        tempNode->SIZE = tmpSIZE;
     }
     return 0;
 }
 //chmod
 int ModeConvers(DirectoryTree* TreeDir, int mode, char* NameDir)
 {
-    TreeNode* tmpNode = NULL;
-    TreeNode* tmpNode2 = NULL;
-    tmpNode = DirExistion(TreeDir, NameDir, 'd');
-    tmpNode2 = DirExistion(TreeDir, NameDir, 'f');
+    TreeNode* tempNode = NULL;
+    TreeNode* tempNode2 = NULL;
+    tempNode = DirExistion(TreeDir, NameDir, 'd');
+    tempNode2 = DirExistion(TreeDir, NameDir, 'f');
 
-    if (tmpNode != NULL) {
-        if (OwnPermission(tmpNode, 'w') != 0) {
+    if (tempNode != NULL) {
+        if (OwnPermission(tempNode, 'w') != 0) {
             printf("chmod: Can not modify file '%s': Permission denied\n", NameDir);
             return -1;
         }
-        tmpNode->mode = mode;
-        ModeToPermission(tmpNode);
+        tempNode->mode = mode;
+        ModeToPermission(tempNode);
     }
-    else if (tmpNode2 != NULL) {
-        if (OwnPermission(tmpNode2, 'w') != 0) {
+    else if (tempNode2 != NULL) {
+        if (OwnPermission(tempNode2, 'w') != 0) {
             printf("chmod: Can not modify file '%s': Permission denied\n", NameDir);
             return -1;
         }
-        tmpNode2->mode = mode;
-        ModeToPermission(tmpNode2);
+        tempNode2->mode = mode;
+        ModeToPermission(tempNode2);
     }
     else {
         printf("chmod: Can not access to '%s: There is no such file or directory\n", NameDir);
@@ -946,25 +946,26 @@ int ModeConvers(DirectoryTree* TreeDir, int mode, char* NameDir)
     return 0;
 }
 //chown
+/*
 int ChangeOwner(DirectoryTree* TreeDir, char* userName, char* dirName) // TreeDir warning
 {
-    TreeNode* tmpNode = NULL;
-    TreeNode* tmpNode2 = NULL;
-    UserNode* tmpUser = NULL;
+    TreeNode* tempNode = NULL;
+    TreeNode* tempNode2 = NULL;
+    UserNode* tempUser = NULL;
 
-    tmpNode = DirExistion(TreeDir, dirName, 'd');
-    tmpNode2 = DirExistion(TreeDir, dirName, 'f');
+    tempNode = DirExistion(TreeDir, dirName, 'd');
+    tempNode2 = DirExistion(TreeDir, dirName, 'f');
 
 
-    if(tmpNode != NULL){
-        if(OwnPermission(tmpNode, 'w') != 0){
+    if(tempNode != NULL){
+        if(OwnPermission(tempNode, 'w') != 0){
             printf("chown: '%s'파일을 수정할 수 없음: 허가거부\n", dirName);
             return -1;
         }
-        tmpUser = UserExistion(UsersList, userName);
-        if(tmpUser != NULL){
-            tmpNode->UID = tmpUser->UID;
-            tmpNode->GID = tmpUser->GID;
+        tempUser = UserExistion(UsersList, userName);
+        if(tempUser != NULL){
+            tempNode->UID = tempUser->UID;
+            tempNode->GID = tempUser->GID;
         }
         else{
             printf("chown: 잘못된 사용자: '%s'\n", userName);
@@ -972,15 +973,15 @@ int ChangeOwner(DirectoryTree* TreeDir, char* userName, char* dirName) // TreeDi
             return -1;
         }
     }
-    else if(tmpNode2 != NULL){
-        if(OwnPermission(tmpNode2, 'w') != 0){
+    else if(tempNode2 != NULL){
+        if(OwnPermission(tempNode2, 'w') != 0){
             printf("chown: '%s'파일을 수정할 수 없음: 허가거부\n", dirName);
             return -1;
         }
-        tmpUser = UserExistion(UsersList, userName);
-        if(tmpUser != NULL){
-            tmpNode2->UID = tmpUser->UID;
-            tmpNode2->GID = tmpUser->GID;
+        tempUser = UserExistion(UsersList, userName);
+        if(tempUser != NULL){
+            tempNode2->UID = tempUser->UID;
+            tempNode2->GID = tempUser->GID;
         }
         else{
             printf("chown: 잘못된 사용자: '%s'\n", userName);
@@ -995,12 +996,66 @@ int ChangeOwner(DirectoryTree* TreeDir, char* userName, char* dirName) // TreeDi
 
     return 0;
 }
+*/
 //chown
+int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
+{
+    TreeNode* tempNode = NULL;
+    TreeNode* tempNode2 = NULL;
+    UserNode* tempUser = NULL;
+
+    tempNode = DirExistion(dirTree, dirName, 'd');
+    tempNode2 = DirExistion(dirTree, dirName, 'f');
+
+
+    if(tempNode != NULL){
+        if(OwnPermission(tempNode, 'w') != 0){
+            printf("chown: %s: Operation not permitted\n", dirName);
+            return -1;
+        }
+        tempUser = UserExistion(UsersList, userName);
+        if(tempUser != NULL){
+            if (flag == 0)
+                tempNode->UID = tempUser->UID;
+            else
+                tempNode->GID = tempUser->GID;
+        }
+        else{
+            printf("chown: %s: illegal user name\n", userName);
+            printf("Try 'chown --help' for more information.\n");
+            return -1;
+        }
+    }
+    else if(tempNode2 != NULL){
+        if(OwnPermission(tempNode2, 'w') != 0){
+            printf("chown: %s: Operation not permitted\n", dirName);
+            return -1;
+        }
+        tempUser = UserExistion(UsersList, userName);
+        if(tempUser != NULL){
+            if (flag == 0)
+                tempNode->UID = tempUser->UID;
+            else
+                tempNode->GID = tempUser->GID;
+        }
+        else{
+            printf("chown: %s: illegal user name\n", userName);
+            printf("Try 'chown —help' for more information.\n");
+            return -1;
+        }
+    }
+    else{
+        printf("chown: %s: No such file or directory\n", dirName);
+        return -1;
+    }
+
+    return 0;
+}
 void ChangeOwnerAll(TreeNode* NodeDir, char* userName)
 {
-    UserNode* tmpUser = NULL;
+    UserNode* tempUser = NULL;
 
-    tmpUser = UserExistion(UsersList, userName);
+    tempUser = UserExistion(UsersList, userName);
 
     if(NodeDir->RightChild != NULL){
         ChangeOwnerAll(NodeDir->RightChild, userName);
@@ -1008,14 +1063,14 @@ void ChangeOwnerAll(TreeNode* NodeDir, char* userName)
     if(NodeDir->LeftChild != NULL){
         ChangeOwnerAll(NodeDir->LeftChild, userName);
     }
-    NodeDir->UID = tmpUser->UID;
-    NodeDir->GID = tmpUser->GID;
+    NodeDir->UID = tempUser->UID;
+    NodeDir->GID = tempUser->GID;
 }
-/*
-int chown_(DirectoryTree* dirTree, char* cmd)      //완료
+
+int chown_(DirectoryTree* dirTree, char* cmd)      
 {
-    DirectoryNode* tmpNode = NULL;
-    UserNode* tmpUser = NULL;
+    TreeNode* tempNode = NULL;
+    UserNode* tempUser = NULL;
     char* str;
     char tmp[MAX_NAME];
 
@@ -1062,11 +1117,11 @@ int chown_(DirectoryTree* dirTree, char* cmd)      //완료
     }
     return 0;
 }
-*/
+/*
 int chown_(DirectoryTree* dirTree, char* cmd)
 {
-    TreeNode* tmpNode = NULL;
-    UserNode* tmpUser = NULL;
+    TreeNode* tempNode = NULL;
+    UserNode* tempUser = NULL;
     char* str;
     char tmp[MAX_NAME];
 
@@ -1083,8 +1138,8 @@ int chown_(DirectoryTree* dirTree, char* cmd)
                 printf("Try 'chown --help' for more information.\n");
                 return -1;
             }
-            tmpUser = UserExistion(UsersList, str);
-            if(tmpUser != NULL){
+            tempUser = UserExistion(UsersList, str);
+            if(tempUser != NULL){
                 strncpy(tmp, str, MAX_NAME);
             }
             else{
@@ -1098,13 +1153,13 @@ int chown_(DirectoryTree* dirTree, char* cmd)
                 printf("Try 'chown --help' for more information.\n");
                 return -1;
             }
-            tmpNode = DirExistion(dirTree, str, 'd');
-            if(tmpNode != NULL){
-                if(tmpNode->LeftChild == NULL)
+            tempNode = DirExistion(dirTree, str, 'd');
+            if(tempNode != NULL){
+                if(tempNode->LeftChild == NULL)
                     ChangeOwner(dirTree, tmp, str);
                 else{
                     ChangeOwner(dirTree, tmp, str);
-                    ChangeOwnerAll(tmpNode->LeftChild, tmp);
+                    ChangeOwnerAll(tempNode->LeftChild, tmp);
                 }
             }
             else{
@@ -1148,7 +1203,7 @@ int chown_(DirectoryTree* dirTree, char* cmd)
     }
     return 0;
 }
-
+*/
 void ModeConversAll(TreeNode* NodeDir, int mode)
 {
     if (NodeDir->RightChild != NULL) {
@@ -1379,16 +1434,16 @@ int OwnPermission(TreeNode* NodeDir, char o)
 
 void Login(UserList* ListUser, DirectoryTree* TreeDir)
 {
-    UserNode* tmpUser = NULL;
+    UserNode* tempUser = NULL;
     char NameUser[MAX_NAME];
     char tmp[MAX_DIR];
 
-    tmpUser = ListUser->head;
+    tempUser = ListUser->head;
 
     printf("Users: ");
-    while (tmpUser != NULL) {
-        printf("%s ", tmpUser->name);
-        tmpUser = tmpUser->LinkNode;
+    while (tempUser != NULL) {
+        printf("%s ", tempUser->name);
+        tempUser = tempUser->LinkNode;
     }
     printf("\n");
 
@@ -1399,9 +1454,9 @@ void Login(UserList* ListUser, DirectoryTree* TreeDir)
         if (strcmp(NameUser, "exit") == 0) {
             break;
         }
-        tmpUser = UserExistion(ListUser, NameUser);
-        if (tmpUser != NULL) {
-            ListUser->current = tmpUser;
+        tempUser = UserExistion(ListUser, NameUser);
+        if (tempUser != NULL) {
+            ListUser->current = tempUser;
             break;
         }
         printf("'%s' Invalid user\n", NameUser);
@@ -1472,7 +1527,7 @@ char* Pop(Stack* StackDir)
 //pasingCommand command
 int Mkdir(DirectoryTree* TreeDir, char* cmd)
 {
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
     char* str;
     int val;
     int Modetmp;
@@ -1488,7 +1543,7 @@ int Mkdir(DirectoryTree* TreeDir, char* cmd)
     pthread_t cmd_t[MAX_THREAD];
     ThreadArg pArgThreading[MAX_THREAD];
 
-    tmpNode = TreeDir->current;
+    tempNode = TreeDir->current;
     if (cmd[0] == '-') {
         if (strcmp(cmd, "-p") == 0) {
             str = strtok(NULL, " ");
@@ -1578,8 +1633,8 @@ int Mkdir(DirectoryTree* TreeDir, char* cmd)
 int rm(DirectoryTree* TreeDir, char* cmd)
 {
     TreeNode* NodeCurrent = NULL;
-    TreeNode* tmpNode = NULL;
-    TreeNode* tmpNode2 = NULL;
+    TreeNode* tempNode = NULL;
+    TreeNode* tempNode2 = NULL;
     char* str;
     char tmp[MAX_DIR];
     char tmp2[MAX_DIR];
@@ -1603,14 +1658,14 @@ int rm(DirectoryTree* TreeDir, char* cmd)
             }
             strncpy(tmp, str, MAX_DIR);
             if (strstr(str, "/") == NULL) {
-                tmpNode = DirExistion(TreeDir, str, 'f');
-                tmpNode = (DirExistion(TreeDir, str, 'd') == NULL) ? tmpNode : DirExistion(TreeDir, str, 'd');
-                if (tmpNode == NULL) {
+                tempNode = DirExistion(TreeDir, str, 'f');
+                tempNode = (DirExistion(TreeDir, str, 'd') == NULL) ? tempNode : DirExistion(TreeDir, str, 'd');
+                if (tempNode == NULL) {
                     printf("rm: Can not remove '%s': No such file or directory.\n", str);
                     return -1;
                 }
                 else {
-                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tmpNode, 'w') != 0) {
+                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tempNode, 'w') != 0) {
                         printf("rm: failed to remove '%s'Can not remove directory or file: Permission denied.\n", str);
                         return -1;
                     }
@@ -1629,15 +1684,15 @@ int rm(DirectoryTree* TreeDir, char* cmd)
                     strncpy(tmp3, str, MAX_NAME);
                     str = strtok(NULL, "/");
                 }
-                tmpNode = DirExistion(TreeDir, tmp3, 'f');
-                tmpNode = (DirExistion(TreeDir, tmp3, 'd') == NULL) ? tmpNode : DirExistion(TreeDir, tmp3, 'd');
-                if (tmpNode == NULL) {
+                tempNode = DirExistion(TreeDir, tmp3, 'f');
+                tempNode = (DirExistion(TreeDir, tmp3, 'd') == NULL) ? tempNode : DirExistion(TreeDir, tmp3, 'd');
+                if (tempNode == NULL) {
                     printf("rm: Can not remove '%s': No such file or directory.\n", tmp3);
                     TreeDir->current = NodeCurrent;
                     return -1;
                 }
                 else {
-                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tmpNode, 'w') != 0) {
+                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tempNode, 'w') != 0) {
                         printf("rm: failed to remove '%s' Can not remove directory or file: Permission denied.\n", tmp3);
                         TreeDir->current = NodeCurrent;
                         return -1;
@@ -1654,13 +1709,13 @@ int rm(DirectoryTree* TreeDir, char* cmd)
             }
             strncpy(tmp, str, MAX_DIR);
             if (strstr(str, "/") == NULL) {
-                tmpNode = DirExistion(TreeDir, str, 'f');
-                if (tmpNode == NULL) {
+                tempNode = DirExistion(TreeDir, str, 'f');
+                if (tempNode == NULL) {
                     printf("error: %s is not a file, %s is a directory\n", str, str);
                     return -1;
                 }
                 else {
-                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tmpNode, 'w') != 0) {
+                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tempNode, 'w') != 0) {
                         return -1;
                     }
                     RemoveDir(TreeDir, str);
@@ -1677,13 +1732,13 @@ int rm(DirectoryTree* TreeDir, char* cmd)
                     strncpy(tmp3, str, MAX_NAME);
                     str = strtok(NULL, "/");
                 }
-                tmpNode = DirExistion(TreeDir, tmp3, 'f');
-                if (tmpNode == NULL) {
+                tempNode = DirExistion(TreeDir, tmp3, 'f');
+                if (tempNode == NULL) {
                     TreeDir->current = NodeCurrent;
                     return -1;
                 }
                 else {
-                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tmpNode, 'w') != 0) {
+                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tempNode, 'w') != 0) {
                         TreeDir->current = NodeCurrent;
                         return -1;
                     }
@@ -1699,13 +1754,13 @@ int rm(DirectoryTree* TreeDir, char* cmd)
             }
             strncpy(tmp, str, MAX_DIR);
             if (strstr(str, "/") == NULL) {
-                tmpNode = DirExistion(TreeDir, str, 'f');
-                tmpNode = (DirExistion(TreeDir, str, 'd') == NULL) ? tmpNode : DirExistion(TreeDir, str, 'd');
-                if (tmpNode == NULL) {
+                tempNode = DirExistion(TreeDir, str, 'f');
+                tempNode = (DirExistion(TreeDir, str, 'd') == NULL) ? tempNode : DirExistion(TreeDir, str, 'd');
+                if (tempNode == NULL) {
                     return -1;
                 }
                 else {
-                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tmpNode, 'w') != 0) {
+                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tempNode, 'w') != 0) {
                         return -1;
                     }
                     RemoveDir(TreeDir, str);
@@ -1722,14 +1777,14 @@ int rm(DirectoryTree* TreeDir, char* cmd)
                     strncpy(tmp3, str, MAX_NAME);
                     str = strtok(NULL, "/");
                 }
-                tmpNode = DirExistion(TreeDir, tmp3, 'f');
-                tmpNode = (DirExistion(TreeDir, tmp3, 'd') == NULL) ? tmpNode : DirExistion(TreeDir, tmp3, 'd');
-                if (tmpNode == NULL) {
+                tempNode = DirExistion(TreeDir, tmp3, 'f');
+                tempNode = (DirExistion(TreeDir, tmp3, 'd') == NULL) ? tempNode : DirExistion(TreeDir, tmp3, 'd');
+                if (tempNode == NULL) {
                     TreeDir->current = NodeCurrent;
                     return -1;
                 }
                 else {
-                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tmpNode, 'w') != 0) {
+                    if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tempNode, 'w') != 0) {
                         TreeDir->current = NodeCurrent;
                         return -1;
                     }
@@ -1764,19 +1819,19 @@ int rm(DirectoryTree* TreeDir, char* cmd)
     else {
         strncpy(tmp, cmd, MAX_DIR);
         if (strstr(cmd, "/") == NULL) {
-            tmpNode = DirExistion(TreeDir, cmd, 'f');
-            tmpNode2 = DirExistion(TreeDir, cmd, 'd');
+            tempNode = DirExistion(TreeDir, cmd, 'f');
+            tempNode2 = DirExistion(TreeDir, cmd, 'd');
 
-            if (tmpNode2 != NULL) {
+            if (tempNode2 != NULL) {
                 printf("rm: Can not remove '%s': Is a directory\n", cmd);
                 return -1;
             }
-            if (tmpNode == NULL) {
+            if (tempNode == NULL) {
                 printf("rm: Can not remove '%s': No such file or directory.\n", cmd);
                 return -1;
             }
             else {
-                if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tmpNode, 'w') != 0) {
+                if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tempNode, 'w') != 0) {
                     printf("rm: Can not remove '%s': Permission denied\n", cmd);
                     return -1;
                 }
@@ -1795,21 +1850,21 @@ int rm(DirectoryTree* TreeDir, char* cmd)
                 strncpy(tmp3, str, MAX_NAME);
                 str = strtok(NULL, "/");
             }
-            tmpNode = DirExistion(TreeDir, tmp3, 'f');
-            tmpNode2 = DirExistion(TreeDir, tmp3, 'd');
+            tempNode = DirExistion(TreeDir, tmp3, 'f');
+            tempNode2 = DirExistion(TreeDir, tmp3, 'd');
 
-            if (tmpNode2 != NULL) {
+            if (tempNode2 != NULL) {
                 printf("rm: Can not remove '%s': Is a directory.\n", tmp3);
                 TreeDir->current = NodeCurrent;
                 return -1;
             }
-            if (tmpNode == NULL) {
+            if (tempNode == NULL) {
                 printf("rm: Can not remove '%s' No such file or directory.\n", tmp3);
                 TreeDir->current = NodeCurrent;
                 return -1;
             }
             else {
-                if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tmpNode, 'w') != 0) {
+                if (OwnPermission(TreeDir->current, 'w') != 0 || OwnPermission(tempNode, 'w') != 0) {
                     printf("rm: Can not remove '%s' Permission denied\n", tmp3);
                     TreeDir->current = NodeCurrent;
                     return -1;
@@ -1824,7 +1879,7 @@ int rm(DirectoryTree* TreeDir, char* cmd)
 
 int cd(DirectoryTree* TreeDir, char* cmd)
 {
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
     char* str = NULL;
     char tmp[MAX_DIR];
     int val;
@@ -1857,15 +1912,15 @@ int cd(DirectoryTree* TreeDir, char* cmd)
         }
     }
     else {
-        tmpNode = DirExistion(TreeDir, cmd, 'd');
-        if (tmpNode != NULL) {
-            if (OwnPermission(tmpNode, 'r') != 0) {
+        tempNode = DirExistion(TreeDir, cmd, 'd');
+        if (tempNode != NULL) {
+            if (OwnPermission(tempNode, 'r') != 0) {
                 printf("-bash: cd: '%s': Permission denied\n", cmd);
                 return -1;
             }
         }
-        tmpNode = DirExistion(TreeDir, cmd, 'f');
-        if (tmpNode != NULL) {
+        tempNode = DirExistion(TreeDir, cmd, 'f');
+        if (tempNode != NULL) {
             printf("-bash: failed to remoeve cd: '%s': Not a directory\n", cmd);
             return -1;
         }
@@ -1910,162 +1965,162 @@ int pwd(DirectoryTree* TreeDir, Stack* StackDir, char* cmd)
 
 char* GetUID(TreeNode* dirNode)
 {
-    UserNode* tmpNode = NULL;
+    UserNode* tempNode = NULL;
 
-    tmpNode = UsersList->head;
-    while(tmpNode != NULL){
-        if(tmpNode->UID == dirNode->UID)
+    tempNode = UsersList->head;
+    while(tempNode != NULL){
+        if(tempNode->UID == dirNode->UID)
             break;
-        tmpNode = tmpNode->LinkNode;
+        tempNode = tempNode->LinkNode;
     }
-    return tmpNode->name;
+    return tempNode->name;
 }
 
 char* GetGID(TreeNode* dirNode)
 {
-    UserNode* tmpNode = NULL;
+    UserNode* tempNode = NULL;
 
-    tmpNode = UsersList->head;
-    while(tmpNode != NULL){
-        if(tmpNode->GID == dirNode->GID)
+    tempNode = UsersList->head;
+    while(tempNode != NULL){
+        if(tempNode->GID == dirNode->GID)
             break;
-        tmpNode = tmpNode->LinkNode;
+        tempNode = tempNode->LinkNode;
     }
-    return tmpNode->name;
+    return tempNode->name;
 }
 
 void ls(DirectoryTree* TreeDir) {
     int count = 0;
-    TreeNode* tmpNode = TreeDir->current;
-    if (tmpNode->LeftChild == NULL)
+    TreeNode* tempNode = TreeDir->current;
+    if (tempNode->LeftChild == NULL)
         printf("directory empty...\n");
     else {
-        tmpNode = tmpNode->LeftChild;
-        while (tmpNode->RightChild != NULL) { // 마지막 파일이 출력 X
+        tempNode = tempNode->LeftChild;
+        while (tempNode->RightChild != NULL) { // 마지막 파일이 출력 X
 
-            if(tmpNode->name[0] != '.'){ // 파일 이름 시작이 '.' 경우 -> 숨김파일
-                if (strlen(tmpNode->name) < 8)
-                    printf("%s\t\t", tmpNode->name);
+            if(tempNode->name[0] != '.'){ // 파일 이름 시작이 '.' 경우 -> 숨김파일
+                if (strlen(tempNode->name) < 8)
+                    printf("%s\t\t", tempNode->name);
                 else
-                    printf("%s\t", tmpNode->name);
+                    printf("%s\t", tempNode->name);
                 count++;
             }
-            tmpNode = tmpNode->RightChild;
+            tempNode = tempNode->RightChild;
 
             if (count % 5 == 0)
                 printf("\n");
 
         }
-        if(tmpNode->name[0] != '.') printf("%s\t\n", tmpNode->name); // 마지막 파일에 대한 출력
+        if(tempNode->name[0] != '.') printf("%s\t\n", tempNode->name); // 마지막 파일에 대한 출력
     }
 }
 
 void ls_a(DirectoryTree* TreeDir) {
     int count = 1;
-    TreeNode* tmpNode = TreeDir->current;
-    if (tmpNode->LeftChild == NULL) {
+    TreeNode* tempNode = TreeDir->current;
+    if (tempNode->LeftChild == NULL) {
         printf(".\t\t..\n");
     }
     else {
         printf(".\t\t..\t\t");
         count = count + 2;
-        tmpNode = tmpNode->LeftChild;
-        while (tmpNode->RightChild != NULL) {
-            if (strlen(tmpNode->name) < 8)
-                printf("%s\t\t", tmpNode->name);
+        tempNode = tempNode->LeftChild;
+        while (tempNode->RightChild != NULL) {
+            if (strlen(tempNode->name) < 8)
+                printf("%s\t\t", tempNode->name);
             else
-                printf("%s\t", tmpNode->name);
-            tmpNode = tmpNode->RightChild;
+                printf("%s\t", tempNode->name);
+            tempNode = tempNode->RightChild;
             if (count % 5 == 0)
                 printf("\n");
             count++;
         }
-        printf("%s\t\n", tmpNode->name);
+        printf("%s\t\n", tempNode->name);
     }
 }
 void ls_l(DirectoryTree* TreeDir) {
     time_t timer = time(NULL);
-    TreeNode* tmpNode = TreeDir->current;
-    TreeNode* tmpNode2 = tmpNode->LeftChild;
+    TreeNode* tempNode = TreeDir->current;
+    TreeNode* tempNode2 = tempNode->LeftChild;
     int cnt=0;
 
-    if(tmpNode2 == NULL) cnt = 2;
+    if(tempNode2 == NULL) cnt = 2;
     else{
-        if(tmpNode2->type == 'd') cnt = 3;
+        if(tempNode2->type == 'd') cnt = 3;
         else cnt = 2;
 
-        while(tmpNode2->RightChild != NULL){
-            tmpNode2 = tmpNode2->RightChild;
-            if(tmpNode2->type == 'd') cnt = cnt + 1;
+        while(tempNode2->RightChild != NULL){
+            tempNode2 = tempNode2->RightChild;
+            if(tempNode2->type == 'd') cnt = cnt + 1;
         }
     }
-    if (tmpNode->LeftChild == NULL)
+    if (tempNode->LeftChild == NULL)
         printf("directory empty\n");
     else {
-        tmpNode = tmpNode->LeftChild;
-        while (tmpNode->RightChild != NULL) {
-            if(tmpNode->name[0] != '.') { // 숨김파일 처리
-                printf("%c", tmpNode->type); // 디렉토리 or 파일
-                PermissionPrint(tmpNode); // 권한 출력
+        tempNode = tempNode->LeftChild;
+        while (tempNode->RightChild != NULL) {
+            if(tempNode->name[0] != '.') { // 숨김파일 처리
+                printf("%c", tempNode->type); // 디렉토리 or 파일
+                PermissionPrint(tempNode); // 권한 출력
                 printf("%3d   ", cnt); // 안에 소속된 파일 개수
-                printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode)); // 유저아이디, 그룹 아이디
-                printf(" %5d", tmpNode->SIZE); // 파일 사이즈
-                printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min); // 생성 날짜
-                printf("%s\n", tmpNode->name); // 파일명
+                printf(" %-5s%-5s", GetUID(tempNode), GetGID(tempNode)); // 유저아이디, 그룹 아이디
+                printf(" %5d", tempNode->SIZE); // 파일 사이즈
+                printf(" %d월 %2d %02d:%02d ", tempNode->month, tempNode->day, tempNode->hour, tempNode->min); // 생성 날짜
+                printf("%s\n", tempNode->name); // 파일명
             }
-            tmpNode = tmpNode->RightChild;
+            tempNode = tempNode->RightChild;
         }
-        printf("%c", tmpNode->type);
-        PermissionPrint(tmpNode);
+        printf("%c", tempNode->type);
+        PermissionPrint(tempNode);
         printf("%3d   ", cnt);
-        printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
-        printf(" %5d", tmpNode->SIZE);
-        printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
-        printf("%s\n", tmpNode->name);
+        printf(" %-5s%-5s", GetUID(tempNode), GetGID(tempNode));
+        printf(" %5d", tempNode->SIZE);
+        printf(" %d월 %2d %02d:%02d ", tempNode->month, tempNode->day, tempNode->hour, tempNode->min);
+        printf("%s\n", tempNode->name);
     }
 }
 void ls_al(DirectoryTree* TreeDir) {
     time_t timer = time(NULL);
-    TreeNode* tmpNode = TreeDir->current;
-    TreeNode* tmpNode2 = tmpNode->LeftChild;
+    TreeNode* tempNode = TreeDir->current;
+    TreeNode* tempNode2 = tempNode->LeftChild;
     int cnt=0;
 
-    if(tmpNode2 == NULL) cnt = 2;
+    if(tempNode2 == NULL) cnt = 2;
     else{
-        if(tmpNode2->type == 'd') cnt = 3;
+        if(tempNode2->type == 'd') cnt = 3;
         else cnt = 2;
 
-        while(tmpNode2->RightChild != NULL){
-            tmpNode2 = tmpNode2->RightChild;
-            if(tmpNode2->type == 'd') cnt = cnt + 1;
+        while(tempNode2->RightChild != NULL){
+            tempNode2 = tempNode2->RightChild;
+            if(tempNode2->type == 'd') cnt = cnt + 1;
         }
     }
-    if (tmpNode->LeftChild == NULL) {
+    if (tempNode->LeftChild == NULL) {
         //.
         printf("%c", TreeDir->current->type);
         PermissionPrint(TreeDir->current);
         printf("%3d   ", cnt);
-        printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
-        printf(" %5d", tmpNode->SIZE);
-        printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
+        printf(" %-5s%-5s", GetUID(tempNode), GetGID(tempNode));
+        printf(" %5d", tempNode->SIZE);
+        printf(" %d월 %2d %02d:%02d ", tempNode->month, tempNode->day, tempNode->hour, tempNode->min);
         printf(".\n");
         //..
         if (strcmp(TreeDir->current->name, "/") == 0) {
             printf("%c", TreeDir->current->type);
             PermissionPrint(TreeDir->current);
             printf("%3d   ", cnt);
-            printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
-            printf(" %5d", tmpNode->SIZE);
-            printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
+            printf(" %-5s%-5s", GetUID(tempNode), GetGID(tempNode));
+            printf(" %5d", tempNode->SIZE);
+            printf(" %d월 %2d %02d:%02d ", tempNode->month, tempNode->day, tempNode->hour, tempNode->min);
             printf("..\n");
         }
         else {
-            printf("%c", tmpNode->Parent->type);
-            PermissionPrint(tmpNode->Parent);
+            printf("%c", tempNode->Parent->type);
+            PermissionPrint(tempNode->Parent);
             printf("%3d   ", cnt);
-            printf(" %-5s%-5s", GetUID(tmpNode->Parent), GetGID(tmpNode->Parent));
-            printf(" %5d", tmpNode->Parent->SIZE);
-            printf(" %d월 %2d %02d:%02d ", tmpNode->Parent->month, tmpNode->Parent->day, tmpNode->Parent->hour, tmpNode->Parent->min);
+            printf(" %-5s%-5s", GetUID(tempNode->Parent), GetGID(tempNode->Parent));
+            printf(" %5d", tempNode->Parent->SIZE);
+            printf(" %d월 %2d %02d:%02d ", tempNode->Parent->month, tempNode->Parent->day, tempNode->Parent->hour, tempNode->Parent->min);
             printf("..\n");
         }
     }
@@ -2074,53 +2129,53 @@ void ls_al(DirectoryTree* TreeDir) {
         printf("%c", TreeDir->current->type);
         PermissionPrint(TreeDir->current);
         printf("%3d   ", cnt);
-        printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
-        printf(" %5d", tmpNode->SIZE);
-        printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
+        printf(" %-5s%-5s", GetUID(tempNode), GetGID(tempNode));
+        printf(" %5d", tempNode->SIZE);
+        printf(" %d월 %2d %02d:%02d ", tempNode->month, tempNode->day, tempNode->hour, tempNode->min);
         printf(".\n");
         //..
         if (strcmp(TreeDir->current->name, "/") == 0) {
             printf("%c", TreeDir->current->type);
             PermissionPrint(TreeDir->current);
             printf("%3d ", cnt);
-            printf(" %-5s%-5s %5d", GetUID(tmpNode), GetGID(tmpNode), tmpNode->SIZE);
-            printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
+            printf(" %-5s%-5s %5d", GetUID(tempNode), GetGID(tempNode), tempNode->SIZE);
+            printf(" %d월 %2d %02d:%02d ", tempNode->month, tempNode->day, tempNode->hour, tempNode->min);
             printf("..\n");
         }
         else {
-            printf("%c", tmpNode->Parent->type);
-            PermissionPrint(tmpNode->Parent);
+            printf("%c", tempNode->Parent->type);
+            PermissionPrint(tempNode->Parent);
             printf("%3d   ", cnt);
-            printf(" %-5s%-5s", GetUID(tmpNode->Parent), GetGID(tmpNode->Parent));
-            printf(" %5d", tmpNode->Parent->SIZE);
-            printf(" %d월 %2d %02d:%02d ", tmpNode->Parent->month, tmpNode->Parent->day, tmpNode->Parent->hour, tmpNode->Parent->min);
+            printf(" %-5s%-5s", GetUID(tempNode->Parent), GetGID(tempNode->Parent));
+            printf(" %5d", tempNode->Parent->SIZE);
+            printf(" %d월 %2d %02d:%02d ", tempNode->Parent->month, tempNode->Parent->day, tempNode->Parent->hour, tempNode->Parent->min);
             printf("..\n");
         }
 
 
-        tmpNode = tmpNode->LeftChild;
-        while (tmpNode->RightChild != NULL) {
-            printf("%c", tmpNode->type);
-            PermissionPrint(tmpNode);
+        tempNode = tempNode->LeftChild;
+        while (tempNode->RightChild != NULL) {
+            printf("%c", tempNode->type);
+            PermissionPrint(tempNode);
             printf("%3d   ", cnt);
-            printf(" %-5s%-5s %5d", GetUID(tmpNode), GetGID(tmpNode), tmpNode->SIZE);
-            printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
-            printf("%s\n", tmpNode->name);
-            tmpNode = tmpNode->RightChild;
+            printf(" %-5s%-5s %5d", GetUID(tempNode), GetGID(tempNode), tempNode->SIZE);
+            printf(" %d월 %2d %02d:%02d ", tempNode->month, tempNode->day, tempNode->hour, tempNode->min);
+            printf("%s\n", tempNode->name);
+            tempNode = tempNode->RightChild;
         }
-        printf("%c", tmpNode->type);
-        PermissionPrint(tmpNode);
+        printf("%c", tempNode->type);
+        PermissionPrint(tempNode);
         printf("%3d   ", cnt);
-        printf(" %-5s%-5s %5d", GetUID(tmpNode), GetGID(tmpNode), tmpNode->SIZE);
-        printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
-        printf("%s\n", tmpNode->name);
+        printf(" %-5s%-5s %5d", GetUID(tempNode), GetGID(tempNode), tempNode->SIZE);
+        printf(" %d월 %2d %02d:%02d ", tempNode->month, tempNode->day, tempNode->hour, tempNode->min);
+        printf("%s\n", tempNode->name);
     }
 }
 int cat(DirectoryTree* TreeDir, char* cmd)
 {
     TreeNode* NodeCurrent = NULL;
-    TreeNode* tmpNode = NULL;
-    TreeNode* tmpNode2 = NULL;
+    TreeNode* tempNode = NULL;
+    TreeNode* tempNode2 = NULL;
     char* str;
     char *tmp = (char* )malloc(sizeof(char)*strlen(cmd));
     //char tmp[MAX_DIR];
@@ -2147,8 +2202,8 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                 printf("cat: Can not create file '%s': No permission.\n", TreeDir->current->name);
                 return -1;
             }
-            tmpNode = DirExistion(TreeDir, str, 'd'); // if write permission-> TsExist excute
-            if (tmpNode != NULL) {
+            tempNode = DirExistion(TreeDir, str, 'd'); // if write permission-> TsExist excute
+            if (tempNode != NULL) {
                 printf("cat: '%s':Is a directory.\n", str);
                 return -1;
             }
@@ -2173,8 +2228,8 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                 TreeDir->current = NodeCurrent;
                 return -1;
             }
-            tmpNode = DirExistion(TreeDir, tmp3, 'd');
-            if (tmpNode != NULL) {
+            tempNode = DirExistion(TreeDir, tmp3, 'd');
+            if (tempNode != NULL) {
                 printf("cat: '%s': Is a directory.\n", tmp3);
                 TreeDir->current = NodeCurrent;
                 return -1;
@@ -2195,19 +2250,19 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                     printf("cat: Can not create file '%s': Permission denied.\n", TreeDir->current->name);
                     return -1;
                 }
-                tmpNode = DirExistion(TreeDir, str, 'd');
-                tmpNode2 = DirExistion(TreeDir, str, 'f');
+                tempNode = DirExistion(TreeDir, str, 'd');
+                tempNode2 = DirExistion(TreeDir, str, 'f');
 
-                if (tmpNode == NULL && tmpNode2 == NULL) {
+                if (tempNode == NULL && tempNode2 == NULL) {
                     printf("cat: '%s': No such file or directory.\n", str);
                     return -1;
                 }
-                else if (tmpNode != NULL && tmpNode2 == NULL) {
+                else if (tempNode != NULL && tempNode2 == NULL) {
                     printf("cat: '%s': Is a directory.\n", str);
                     return -1;
                 }
-                else if (tmpNode2 != NULL && OwnPermission(tmpNode2, 'r') != 0) {
-                    printf("cat: Can not open file '%s': Permission denied\n", tmpNode2->name);
+                else if (tempNode2 != NULL && OwnPermission(tempNode2, 'r') != 0) {
+                    printf("cat: Can not open file '%s': Permission denied\n", tempNode2->name);
                     return -1;
                 }
                 else {
@@ -2226,21 +2281,21 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                     strncpy(tmp3, str, MAX_NAME);
                     str = strtok(NULL, "/");
                 }
-                tmpNode = DirExistion(TreeDir, tmp3, 'd');
-                tmpNode2 = DirExistion(TreeDir, tmp3, 'f');
+                tempNode = DirExistion(TreeDir, tmp3, 'd');
+                tempNode2 = DirExistion(TreeDir, tmp3, 'f');
 
-                if (tmpNode == NULL && tmpNode2 == NULL) {
+                if (tempNode == NULL && tempNode2 == NULL) {
                     printf("cat: '%s': No such file or directory.\n", tmp3);
                     TreeDir->current = NodeCurrent;
                     return -1;
                 }
-                else if (tmpNode != NULL && tmpNode2 == NULL) {
+                else if (tempNode != NULL && tempNode2 == NULL) {
                     printf("cat: '%s': Is a directory.\n", tmp3);
                     TreeDir->current = NodeCurrent;
                     return -1;
                 }
-                else if (tmpNode2 != NULL && OwnPermission(tmpNode2, 'r') != 0) {
-                    printf("cat: Can not open file '%s': Permission denied\n", tmpNode2->name);
+                else if (tempNode2 != NULL && OwnPermission(tempNode2, 'r') != 0) {
+                    printf("cat: Can not open file '%s': Permission denied\n", tempNode2->name);
                     TreeDir->current = NodeCurrent;
                     return -1;
                 }
@@ -2258,18 +2313,18 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                     printf("cat: Can not create file '%s': Permission denied\n", TreeDir->current->name);
                     return -1;
                 }
-                tmpNode = DirExistion(TreeDir, str, 'd');
-                tmpNode2 = DirExistion(TreeDir, str, 'f');
-                if (tmpNode == NULL && tmpNode2 == NULL) {
+                tempNode = DirExistion(TreeDir, str, 'd');
+                tempNode2 = DirExistion(TreeDir, str, 'f');
+                if (tempNode == NULL && tempNode2 == NULL) {
                     printf("cat: '%s': No such file or directory.\n", str);
                     return -1;
                 }
-                else if (tmpNode != NULL && tmpNode2 == NULL) {
+                else if (tempNode != NULL && tempNode2 == NULL) {
                     printf("cat: '%s': Is a directory.\n", str);
                     return -1;
                 }
-                else if (tmpNode2 != NULL && OwnPermission(tmpNode2, 'r') != 0) {
-                    printf("cat: Can not open file '%s': Permission denied\n", tmpNode2->name);
+                else if (tempNode2 != NULL && OwnPermission(tempNode2, 'r') != 0) {
+                    printf("cat: Can not open file '%s': Permission denied\n", tempNode2->name);
                     return -1;
                 }
                 else {
@@ -2288,20 +2343,20 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                     strncpy(tmp3, str, MAX_NAME);
                     str = strtok(NULL, "/");
                 }
-                tmpNode = DirExistion(TreeDir, tmp3, 'd');
-                tmpNode2 = DirExistion(TreeDir, tmp3, 'f');
-                if (tmpNode == NULL && tmpNode2 == NULL) {
+                tempNode = DirExistion(TreeDir, tmp3, 'd');
+                tempNode2 = DirExistion(TreeDir, tmp3, 'f');
+                if (tempNode == NULL && tempNode2 == NULL) {
                     printf("cat: '%s': No such file or directory.\n", tmp3);
                     TreeDir->current = NodeCurrent;
                     return -1;
                 }
-                else if (tmpNode != NULL && tmpNode2 == NULL) {
+                else if (tempNode != NULL && tempNode2 == NULL) {
                     printf("cat: '%s': Is a direcotry\n", tmp3);
                     TreeDir->current = NodeCurrent;
                     return -1;
                 }
-                else if (tmpNode2 != NULL && OwnPermission(tmpNode2, 'r') != 0) {
-                    printf("cat: Can not open file '%s': Permission denied\n", tmpNode2->name);
+                else if (tempNode2 != NULL && OwnPermission(tempNode2, 'r') != 0) {
+                    printf("cat: Can not open file '%s': Permission denied\n", tempNode2->name);
                     TreeDir->current = NodeCurrent;
                     return -1;
                 }
@@ -2349,18 +2404,18 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                 return -1;
             }
             //printf("is it here?\n");
-            tmpNode = DirExistion(TreeDir, cmd, 'd');
-            tmpNode2 = DirExistion(TreeDir, cmd, 'f');
-            if (tmpNode == NULL && tmpNode2 == NULL) {
+            tempNode = DirExistion(TreeDir, cmd, 'd');
+            tempNode2 = DirExistion(TreeDir, cmd, 'f');
+            if (tempNode == NULL && tempNode2 == NULL) {
                 printf("cat: '%s': No such file or directory.\n", cmd);
                 return -1;
             }
-            else if (tmpNode != NULL && tmpNode2 == NULL) {
+            else if (tempNode != NULL && tempNode2 == NULL) {
                 printf("cat: '%s': Is a directory\n", cmd);
                 return -1;
             }
-            else if (tmpNode2 != NULL && OwnPermission(tmpNode2, 'r') != 0) {
-                printf("cat: Can not open file '%s': Permission denied\n", tmpNode2->name);
+            else if (tempNode2 != NULL && OwnPermission(tempNode2, 'r') != 0) {
+                printf("cat: Can not open file '%s': Permission denied\n", tempNode2->name);
                 return -1;
             }
             else {
@@ -2381,20 +2436,20 @@ int cat(DirectoryTree* TreeDir, char* cmd)
                 strncpy(tmp3, str, MAX_NAME);
                 str = strtok(NULL, "/");
             }
-            tmpNode = DirExistion(TreeDir, tmp3, 'd');
-            tmpNode2 = DirExistion(TreeDir, tmp3, 'f');
-            if (tmpNode == NULL && tmpNode2 == NULL) {
+            tempNode = DirExistion(TreeDir, tmp3, 'd');
+            tempNode2 = DirExistion(TreeDir, tmp3, 'f');
+            if (tempNode == NULL && tempNode2 == NULL) {
                 printf("cat: '%s': No such file or directory.\n", tmp3);
                 TreeDir->current = NodeCurrent;
                 return -1;
             }
-            else if (tmpNode != NULL && tmpNode2 == NULL) {
+            else if (tempNode != NULL && tempNode2 == NULL) {
                 printf("cat: '%s': Is a directory\n", tmp3);
                 TreeDir->current = NodeCurrent;
                 return -1;
             }
-            else if (tmpNode2 != NULL && OwnPermission(tmpNode2, 'r') != 0) {
-                printf("cat:  Can not open file '%s': Permission denied\n", tmpNode2->name);
+            else if (tempNode2 != NULL && OwnPermission(tempNode2, 'r') != 0) {
+                printf("cat:  Can not open file '%s': Permission denied\n", tempNode2->name);
                 TreeDir->current = NodeCurrent;
                 return -1;
             }
@@ -2535,7 +2590,7 @@ void grep_i(char* findWord, char *findFile){
 }
 int chmod_(DirectoryTree* TreeDir, char* cmd)
 {
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
     char* str;
     int tmp;
 
@@ -2560,13 +2615,13 @@ int chmod_(DirectoryTree* TreeDir, char* cmd)
                     printf("Try 'chmod --help' for more information.\n");
                     return -1;
                 }
-                tmpNode = DirExistion(TreeDir, str, 'd');
-                if (tmpNode != NULL) {
-                    if (tmpNode->LeftChild == NULL)
+                tempNode = DirExistion(TreeDir, str, 'd');
+                if (tempNode != NULL) {
+                    if (tempNode->LeftChild == NULL)
                         ModeConvers(TreeDir, tmp, str);
                     else {
                         ModeConvers(TreeDir, tmp, str);
-                        ModeConversAll(tmpNode->LeftChild, tmp);
+                        ModeConversAll(tempNode->LeftChild, tmp);
                     }
                 }
                 else {
@@ -2769,7 +2824,7 @@ void pasingCommand(DirectoryTree* TreeDir, char* cmd)
 
 void printHedder(DirectoryTree* TreeDir, Stack* StackDir)
 {
-    TreeNode* tmpNode = NULL;
+    TreeNode* tempNode = NULL;
     char tmp[MAX_DIR] = "";
     char tmp2[MAX_DIR] = "";
     char usr;
@@ -2781,15 +2836,15 @@ void printHedder(DirectoryTree* TreeDir, Stack* StackDir)
 
     printf("%s@os-Virtualbox", UsersList->current->name);
     printf(":");
-    tmpNode = TreeDir->current;
+    tempNode = TreeDir->current;
 
-    if (tmpNode == TreeDir->root) {
+    if (tempNode == TreeDir->root) {
         strcpy(tmp, "/");
     }
     else {
-        while (tmpNode->Parent != NULL) {
-            Push(StackDir, tmpNode->name);
-            tmpNode = tmpNode->Parent;
+        while (tempNode->Parent != NULL) {
+            Push(StackDir, tempNode->name);
+            tempNode = tempNode->Parent;
         }
         while (EmptyTrue(StackDir) == 0) {
             strcat(tmp, "/");
@@ -2806,10 +2861,10 @@ void printHedder(DirectoryTree* TreeDir, Stack* StackDir)
         printf("%s", tmp);
     }
     else {
-        tmpNode = TreeDir->current;
-        while (tmpNode->Parent != NULL) {
-            Push(StackDir, tmpNode->name);
-            tmpNode = tmpNode->Parent;
+        tempNode = TreeDir->current;
+        while (tempNode->Parent != NULL) {
+            Push(StackDir, tempNode->name);
+            tempNode = tempNode->Parent;
         }
         Pop(StackDir);
         Pop(StackDir);
