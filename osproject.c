@@ -2451,7 +2451,36 @@ void grep_v(char* findWord, char *findFile){
 }
 
 // ðÂÊ«?Öð ?ùì??
+void grep_i(char* findWord, char *findFile){
+    FILE* fp = fopen(findFile, "rt");
+    if(fp == NULL){
+        printf("Can not Exist File!\n");
+        return;
+    }
 
+    for(int i=0;i<strlen(findWord);i++){
+        if(65 <= findWord[i] && findWord[i] <= 90){
+                findWord[i] += 32;
+            }
+    }
+
+    char outputLine[MAX_LENGTH];
+    while(!feof(fp)){
+        char* line = fgets(outputLine, sizeof(outputLine), fp);
+        char* temp = line;
+        if(temp == NULL) break;
+        temp = deleteSpace(temp);
+        for(int i=0;i<strlen(temp);i++){
+            if(65 <= temp[i] && temp[i] <= 90){
+                temp[i] += 32;
+            }
+        }
+        if(strstr(temp, findWord) != NULL){
+            printf("%s", line);
+        }
+    }
+    fclose(fp);
+}
 int chmod_(DirectoryTree* TreeDir, char* cmd)
 {
     TreeNode* tmpNode = NULL;
