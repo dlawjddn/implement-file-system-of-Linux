@@ -201,7 +201,7 @@ int main()
     while (1) {
         printHedder(Linux, dStack);
         fgets(cmd, sizeof(cmd), stdin);
-        cmd[strlen(cmd) - 1] = '\0';
+        cmd[strlen(cmd) - 1] = '\0'; // null을 처리해서 문자열의 끝을 알려줌
         pasingCommand(Linux, cmd);
     }
     return 0;
@@ -1889,9 +1889,9 @@ void ls(DirectoryTree* TreeDir) {
         printf("directory empty...\n");
     else {
         tmpNode = tmpNode->LeftChild;
-        while (tmpNode->RightChild != NULL) {
+        while (tmpNode->RightChild != NULL) { // 마지막 파일이 출력 X
 
-            if(tmpNode->name[0] != '.'){
+            if(tmpNode->name[0] != '.'){ // 파일 이름 시작이 '.' 경우 -> 숨김파일
                 if (strlen(tmpNode->name) < 8)
                     printf("%s\t\t", tmpNode->name);
                 else
@@ -1904,7 +1904,7 @@ void ls(DirectoryTree* TreeDir) {
                 printf("\n");
 
         }
-        if(tmpNode->name[0] != '.') printf("%s\t\n", tmpNode->name);
+        if(tmpNode->name[0] != '.') printf("%s\t\n", tmpNode->name); // 마지막 파일에 대한 출력
     }
 }
 
@@ -1952,14 +1952,14 @@ void ls_l(DirectoryTree* TreeDir) {
     else {
         tmpNode = tmpNode->LeftChild;
         while (tmpNode->RightChild != NULL) {
-            if(tmpNode->name[0] != '.') {
-                printf("%c", tmpNode->type);
-                PermissionPrint(tmpNode);
-                printf("%3d   ", cnt);
-                printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
-                printf(" %5d", tmpNode->SIZE);
-                printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min);
-                printf("%s\n", tmpNode->name);
+            if(tmpNode->name[0] != '.') { // 숨김파일 처리
+                printf("%c", tmpNode->type); // 디렉토리 or 파일
+                PermissionPrint(tmpNode); // 권한 출력
+                printf("%3d   ", cnt); // 안에 소속된 파일 개수
+                printf(" %-5s%-5s", GetUID(tmpNode), GetGID(tmpNode)); // 유저아이디, 그룹 아이디
+                printf(" %5d", tmpNode->SIZE); // 파일 사이즈
+                printf(" %d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->min); // 생성 날짜
+                printf("%s\n", tmpNode->name); // 파일명
             }
             tmpNode = tmpNode->RightChild;
         }
@@ -2354,6 +2354,18 @@ int cat(DirectoryTree* TreeDir, char* cmd)
     }
     return 1;
 }
+char* deleteSpace(char* s){
+    int k = 0;
+    char* str = (char*)malloc(sizeof(s));
+
+    for (int i=0;i<strlen(s);i++){
+        if (s[i]!=' ') {
+            str[k++] = s[i];
+        }
+    }
+    str[k] = '\0';
+    return str;
+}
 
 void grep(char* Word_Search, char* f_name) {
     int i = 1;
@@ -2404,6 +2416,41 @@ void grep2(char* Word_Search, char* f_name) {
     }
     fclose(fp);
 }
+void grep_v(char* findWord, char *findFile){
+    FILE* fp = fopen(findFile, "rt");
+    if(fp == NULL){
+        printf("Can not Exist File!\n");
+        return;
+    }
+
+    int index = 0;
+    char outputLine[MAX_LENGTH];
+    int isNotExist[MAX_LENGTH] = {0, };
+    memset(isNotExist, 0, sizeof(isNotExist));
+    while(!feof(fp)){
+        char* temp = fgets(outputLine, sizeof(outputLine), fp);
+        if(temp == NULL) break;
+        temp = deleteSpace(temp);
+        if(strstr(temp, findWord) == NULL){
+            isNotExist[index] = 1;
+        }
+        index++;  
+    }
+    fclose(fp);
+
+    index = 0;
+    FILE* rfp = fopen(findFile, "rt");
+    while(!feof(rfp)){
+        char* temp = fgets(outputLine, sizeof(outputLine), rfp);
+        if(temp == NULL) break;
+        if(isNotExist[index++]){
+            printf("%s", temp);
+        }
+    }
+    fclose(rfp);
+}
+
+// ðÂÊ«?Öð ?ùì??
 
 int chmod_(DirectoryTree* TreeDir, char* cmd)
 {
@@ -2546,7 +2593,7 @@ void pasingCommand(DirectoryTree* TreeDir, char* cmd)
     char* str1;
     char* str2;
     int val;
-    if (strcmp(cmd, "") == 0 || cmd[0] == ' ') {
+    if (strcmp(cmd, "") == 0 || cmd[0] == ' ') { // 입력 X
         return;
     }
     str = strtok(cmd, " ");
@@ -2625,10 +2672,10 @@ void pasingCommand(DirectoryTree* TreeDir, char* cmd)
         str = strtok(NULL, " ");
         str1 = strtok(NULL, " ");
         str2 = strtok(NULL, " ");
-        if (strcmp(str, "-n") == 0)
-            grep2(str1, str2);
-        else
-            grep(str, str1);
+        if (strcmp(str, "-n") == 0) grep2(str1, str2);
+        else if (strcmp(str, "-i") == 0) grep_i(str1, str2);
+        else if (strcmp(str, "-v") == 0) grep_v(str1, str2);
+        else grep(str1, str2);
     }
     else if (strcmp(str, "clear") == 0) {
         system("clear");
