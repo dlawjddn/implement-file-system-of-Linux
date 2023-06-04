@@ -1,3 +1,6 @@
+// aws 연결 : https://wooono.tistory.com/371 - OSManager adduser 방법
+// 인바운드 규칙에 모든 팀원 탄력적 ip + 팀장 내 ip 추가
+// ubuntu에 연결하는 방법 https://serina-the-best.tistory.com/16
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1008,7 +1011,7 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
     tempNode2 = DirExistion(dirTree, dirName, 'f');
 
 
-    if(tempNode != NULL){
+    if(tempNode != NULL){ //디렉토리인 경우
         if(OwnPermission(tempNode, 'w') != 0){
             printf("chown: %s: Operation not permitted\n", dirName);
             return -1;
@@ -1026,7 +1029,7 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
             return -1;
         }
     }
-    else if(tempNode2 != NULL){
+    else if(tempNode2 != NULL){ // 파일인 경우
         if(OwnPermission(tempNode2, 'w') != 0){
             printf("chown: %s: Operation not permitted\n", dirName);
             return -1;
@@ -1034,9 +1037,9 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
         tempUser = UserExistion(UsersList, userName);
         if(tempUser != NULL){
             if (flag == 0)
-                tempNode->UID = tempUser->UID;
+                tempNode2->UID = tempUser->UID;
             else
-                tempNode->GID = tempUser->GID;
+                tempNode2->GID = tempUser->GID;
         }
         else{
             printf("chown: %s: illegal user name\n", userName);
