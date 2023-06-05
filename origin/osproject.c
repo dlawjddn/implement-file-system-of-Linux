@@ -2772,10 +2772,13 @@ void pasingCommand(DirectoryTree* TreeDir, char* cmd)
         str = strtok(NULL, " ");
         str1 = strtok(NULL, " ");
         str2 = strtok(NULL, " ");
+        printf("%s\n", str);
+        printf("%s\n", str1);
+        printf("%s\n", str2);
         if (strcmp(str, "-n") == 0) grep2(str1, str2);
         else if (strcmp(str, "-i") == 0) grep_i(str1, str2);
         else if (strcmp(str, "-v") == 0) grep_v(str1, str2);
-        else grep(str1, str2);
+        else grep(str, str1);
     }
     else if (strcmp(str, "clear") == 0) {
         system("clear");
