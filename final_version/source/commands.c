@@ -1252,8 +1252,18 @@ void pasingCommand(DirectoryTree* TreeDir, char* cmd)
             ls_a(TreeDir);
         else if (strcmp(str, "-l") == 0)
             ls_l(TreeDir);
-        else
+        else if (strcmp(str, "-al") == 0)
             ls_al(TreeDir);
+        else if(strcmp(str, "--help") == 0){
+            printf("사용법: ls [option]\n");
+            printf("  Show your list of file or directory.\n\n");
+            printf("  Options:\n");
+            printf("    -a : show your all files include hiding files\n");
+            printf("    -l : show your files with details\n");
+            printf("    -al: show your all files include hinding files with details \n");
+            printf("        --help\t 이 도움말을 표시하고 끝냅니다\n");
+        }
+        else printf("invailed option of ls please check your command\n");
     }
     else if (strcmp(str, "cat") == 0) {
         str = strtok(NULL, " ");

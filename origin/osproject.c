@@ -1,6 +1,7 @@
 // aws 연결 : https://wooono.tistory.com/371 - OSManager adduser 방법
 // 인바운드 규칙에 모든 팀원 탄력적 ip + 팀장 내 ip 추가
 // ubuntu에 연결하는 방법 https://serina-the-best.tistory.com/16
+// 무조건 ec2에 올리고 실행해보기... local 환경이랑 많아 다르더라..
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -948,58 +949,6 @@ int ModeConvers(DirectoryTree* TreeDir, int mode, char* NameDir)
     }
     return 0;
 }
-//chown
-/*
-int ChangeOwner(DirectoryTree* TreeDir, char* userName, char* dirName) // TreeDir warning
-{
-    TreeNode* tempNode = NULL;
-    TreeNode* tempNode2 = NULL;
-    UserNode* tempUser = NULL;
-
-    tempNode = DirExistion(TreeDir, dirName, 'd');
-    tempNode2 = DirExistion(TreeDir, dirName, 'f');
-
-
-    if(tempNode != NULL){
-        if(OwnPermission(tempNode, 'w') != 0){
-            printf("chown: '%s'파일을 수정할 수 없음: 허가거부\n", dirName);
-            return -1;
-        }
-        tempUser = UserExistion(UsersList, userName);
-        if(tempUser != NULL){
-            tempNode->UID = tempUser->UID;
-            tempNode->GID = tempUser->GID;
-        }
-        else{
-            printf("chown: 잘못된 사용자: '%s'\n", userName);
-            printf("Try 'chown --help' for more information.\n");
-            return -1;
-        }
-    }
-    else if(tempNode2 != NULL){
-        if(OwnPermission(tempNode2, 'w') != 0){
-            printf("chown: '%s'파일을 수정할 수 없음: 허가거부\n", dirName);
-            return -1;
-        }
-        tempUser = UserExistion(UsersList, userName);
-        if(tempUser != NULL){
-            tempNode2->UID = tempUser->UID;
-            tempNode2->GID = tempUser->GID;
-        }
-        else{
-            printf("chown: 잘못된 사용자: '%s'\n", userName);
-            printf("Try 'chown --help' for more information.\n");
-            return -1;
-        }
-    }
-    else{
-        printf("chown: '%s'에 접근할 수 없습니다: 그런 파일이나 디렉터리가 없습니다\n", dirName);
-        return -1;
-    }
-
-    return 0;
-}
-*/
 //chown
 int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
 {
@@ -2769,14 +2718,26 @@ void pasingCommand(DirectoryTree* TreeDir, char* cmd)
     }
     else if (strcmp(str, "ls") == 0) {
         str = strtok(NULL, " ");
+        printf("%s\n", str);
         if (str == NULL)
             ls(TreeDir);
         else if (strcmp(str, "-a") == 0)
             ls_a(TreeDir);
         else if (strcmp(str, "-l") == 0)
             ls_l(TreeDir);
-        else
+        else if (strcmp(str, "-al") == 0)
             ls_al(TreeDir);
+        else if(strcmp(cmd, "--help") == 0){
+            printf("사용법: ls [option]\n");
+            printf("  Show your list of file or directory.\n\n");
+            printf("  Options:\n");
+            printf("    -a : show your all files include hiding files\n");
+            printf("    -l : show your files with details\n");
+            printf("    -al: show your all files include hinding files with details \n");
+            printf("        --help\t 이 도움말을 표시하고 끝냅니다\n");
+        }
+        else
+            printf("Invailed option of ls check your command plz\n");
     }
     else if (strcmp(str, "cat") == 0) {
         str = strtok(NULL, " ");
