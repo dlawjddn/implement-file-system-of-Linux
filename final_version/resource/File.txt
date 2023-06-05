@@ -1,0 +1,2 @@
+hello.txt f 644 20 1000 1000 6 1 1 40 /home/os/문서
+hello f 666 16 1000 1000 6 10 3 3 /home/os/문서
