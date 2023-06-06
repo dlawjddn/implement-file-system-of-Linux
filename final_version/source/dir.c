@@ -583,50 +583,54 @@ int ModeConvers(DirectoryTree* TreeDir, int mode, char* NameDir)
     return 0;
 }
 //chown
-int ChangeOwner(DirectoryTree* TreeDir, char* userName, char* dirName) // TreeDir warning
+int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
 {
-    TreeNode* tmpNode = NULL;
-    TreeNode* tmpNode2 = NULL;
-    UserNode* tmpUser = NULL;
+    TreeNode* tempNode = NULL;
+    TreeNode* tempNode2 = NULL;
+    UserNode* tempUser = NULL;
 
-    tmpNode = DirExistion(TreeDir, dirName, 'd');
-    tmpNode2 = DirExistion(TreeDir, dirName, 'f');
+    tempNode = DirExistion(dirTree, dirName, 'd');
+    tempNode2 = DirExistion(dirTree, dirName, 'f');
 
 
-    if(tmpNode != NULL){
-        if(OwnPermission(tmpNode, 'w') != 0){
-            printf("chown: '%s'파일을 수정할 수 없음: 허가거부\n", dirName);
+    if(tempNode != NULL){ //디렉토리인 경우
+        if(OwnPermission(tempNode, 'w') != 0){
+            printf("chown: %s: Operation not permitted\n", dirName);
             return -1;
         }
-        tmpUser = UserExistion(UsersList, userName);
-        if(tmpUser != NULL){
-            tmpNode->UID = tmpUser->UID;
-            tmpNode->GID = tmpUser->GID;
+        tempUser = UserExistion(UsersList, userName);
+        if(tempUser != NULL){
+            if (flag == 0)
+                tempNode->UID = tempUser->UID;
+            else
+                tempNode->GID = tempUser->GID;
         }
         else{
-            printf("chown: 잘못된 사용자: '%s'\n", userName);
+            printf("chown: %s: illegal user name\n", userName);
             printf("Try 'chown --help' for more information.\n");
             return -1;
         }
     }
-    else if(tmpNode2 != NULL){
-        if(OwnPermission(tmpNode2, 'w') != 0){
-            printf("chown: '%s'파일을 수정할 수 없음: 허가거부\n", dirName);
+    else if(tempNode2 != NULL){ // 파일인 경우
+        if(OwnPermission(tempNode2, 'w') != 0){
+            printf("chown: %s: Operation not permitted\n", dirName);
             return -1;
         }
-        tmpUser = UserExistion(UsersList, userName);
-        if(tmpUser != NULL){
-            tmpNode2->UID = tmpUser->UID;
-            tmpNode2->GID = tmpUser->GID;
+        tempUser = UserExistion(UsersList, userName);
+        if(tempUser != NULL){
+            if (flag == 0)
+                tempNode2->UID = tempUser->UID;
+            else
+                tempNode2->GID = tempUser->GID;
         }
         else{
-            printf("chown: 잘못된 사용자: '%s'\n", userName);
-            printf("Try 'chown --help' for more information.\n");
+            printf("chown: %s: illegal user name\n", userName);
+            printf("Try 'chown —help' for more information.\n");
             return -1;
         }
     }
     else{
-        printf("chown: '%s'에 접근할 수 없습니다: 그런 파일이나 디렉터리가 없습니다\n", dirName);
+        printf("chown: %s: No such file or directory\n", dirName);
         return -1;
     }
 
@@ -658,87 +662,52 @@ void ChangeOwnerAll(TreeNode* NodeDir, char* userName)
     NodeDir->UID = tmpUser->UID;
     NodeDir->GID = tmpUser->GID;
 }
-int chown_(DirectoryTree* dirTree, char* cmd)
+int chown_(DirectoryTree* dirTree, char* cmd)      
 {
-    TreeNode* tmpNode = NULL;
-    UserNode* tmpUser = NULL;
+    TreeNode* tempNode = NULL;
+    UserNode* tempUser = NULL;
     char* str;
     char tmp[MAX_NAME];
 
     if(cmd == NULL){
-        printf("chown: put your command line\n");
         printf("Try 'chown --help' for more information.\n");
         return -1;
     }
     if(cmd[0] == '-'){
-        if(strcmp(cmd, "-R") == 0){
-            str = strtok(NULL, " ");
-            if(str == NULL){
-                printf("chown: wrong operator\n");
-                printf("Try 'chown --help' for more information.\n");
-                return -1;
-            }
-            tmpUser = UserExistion(UsersList, str);
-            if(tmpUser != NULL){
-                strncpy(tmp, str, MAX_NAME);
-            }
-            else{
-                printf("chown: wrong user: '%s'\n", str);
-                printf("Try 'chown --help' for more information.\n");
-                return -1;
-            }
-            str = strtok(NULL, " ");
-            if(str == NULL){
-                printf("chown: put your command line\n");
-                printf("Try 'chown --help' for more information.\n");
-                return -1;
-            }
-            tmpNode = DirExistion(dirTree, str, 'd');
-            if(tmpNode != NULL){
-                if(tmpNode->LeftChild == NULL)
-                    ChangeOwner(dirTree, tmp, str);
-                else{
-                    ChangeOwner(dirTree, tmp, str);
-                    ChangeOwnerAll(tmpNode->LeftChild, tmp);
-                }
-            }
-            else{
-                printf("chown: '%s': there is no file or directory..\n", str);
-                return -1;
-            }
-        }
-        else if(strcmp(cmd, "--help") == 0){
+        if(strcmp(cmd, "--help") == 0){
             printf("사용법: chown [옵션]... [소유자]... 파일...\n");
             printf("  Change the owner and/or group of each FILE to OWNER and/or GROUP.\n\n");
             printf("  Options:\n");
             printf("    -R, --recursive\t change files and directories recursively\n");
             printf("        --help\t 이 도움말을 표시하고 끝냅니다\n");
-            return -1;
         }
-        else{
-            str = strtok(cmd, "-");
-            if(str == NULL){
-                printf("chown: put your command line\n");
-                printf("Try 'chown --help' for more information.\n");
-                return -1;
-            }
-            else{
-                printf("chown: invailable option -- 5'%s'\n", str);
-                printf("Try 'chown --help' for more information.\n");
-                return -1;
-            }
-        }
+        return -1;
     }
     else{
         strncpy(tmp, cmd, MAX_NAME);
         str = strtok(NULL, " ");
         if(str == NULL){
-            printf("chown: put your command line\n");
             printf("Try 'chown --help' for more information.\n");
             return -1;
         }
         else{
-            ChangeOwner(dirTree, tmp, str);
+            //그룹
+            if (strstr(tmp, ":") == NULL){
+                ChangeOwner(dirTree, tmp, str, 0);
+            }
+            else{
+                char tmp2[MAX_NAME];
+                strncpy(tmp2, tmp, MAX_NAME);
+                char *str2 = strtok(tmp, ":");
+                if (str2 != NULL && strcmp(tmp, tmp2) != 0){
+                    ChangeOwner(dirTree, str2, str, 0);
+                    str2 = strtok(NULL, " ");
+                    if (str2 != NULL)
+                        ChangeOwner(dirTree, str2, str, 1);
+                }
+                else if (str2 != NULL && strcmp(tmp, tmp2) == 0)
+                    ChangeOwner(dirTree, str2, str, 1);
+            }
         }
     }
     return 0;

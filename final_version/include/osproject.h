@@ -150,7 +150,7 @@ int ModeConvers(DirectoryTree* TreeDir, int mode, char* NameDir);
 void ModeConversAll(TreeNode* NodeDir, int mode);
 
 //chown
-int ChangeOwner(DirectoryTree* TreeDir, char* userName, char* dirName);
+int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag);
 void ChangeOwnerAll(TreeNode* NodeDir, char* userName);
 int chown_(DirectoryTree* dirTree, char* cmd);
 
